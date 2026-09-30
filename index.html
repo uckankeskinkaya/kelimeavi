@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kelime Avı</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#eef2f7;--panel:#fff;--fg:#16202e;--dim:#5b6b80;--line:#c9d3e0;--key:#dbe3ee;--g:#2fae5f;--o:#f08a24;--r:#d64550;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1622;--panel:#182234;--fg:#e8eef7;--dim:#8fa1b8;--line:#2b3a52;--key:#2a3a54}}
+:root[data-theme="dark"]{--bg:#0f1622;--panel:#182234;--fg:#e8eef7;--dim:#8fa1b8;--line:#2b3a52;--key:#2a3a54}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+#app{height:100%;max-width:520px;margin:0 auto;padding:12px 14px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px}
+header{display:flex;justify-content:space-between;align-items:center}
+h1{font-size:22px;margin:0}
+#score{font-weight:700;font-size:16px}
+button{font-family:inherit;color:inherit;cursor:pointer}
+.lvl{display:flex;justify-content:space-between;align-items:center;width:100%;padding:16px;margin-bottom:10px;border:1px solid var(--line);border-radius:14px;background:var(--panel);font-size:16px;text-align:left}
+.lvl b{font-size:22px}
+.lvl small{color:var(--dim);display:block;margin-top:2px}
+.lvl:active{transform:scale(.98)}
+#menu{overflow-y:auto}
+#menu p{color:var(--dim);margin:0 0 14px;line-height:1.4}
+#game{flex:1;display:flex;flex-direction:column;gap:10px;min-height:0}
+#top{display:flex;justify-content:space-between;align-items:center}
+#back{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:8px 12px;font-size:14px}
+#badge{font-weight:700}
+#def{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-family:Georgia,serif;font-size:17px;line-height:1.4}
+#def small{display:block;margin-top:6px;font-family:system-ui,sans-serif;font-size:13px;color:var(--dim)}
+#defrow{display:flex;gap:8px;align-items:stretch}
+#defrow #def{flex:1}
+#hintbtn{width:48px;border-radius:12px;border:1px solid var(--o);background:transparent;color:var(--o);font-size:22px;font-weight:800;cursor:pointer}
+#hintbtn:active{transform:scale(.92)}
+#hinttxt{background:var(--panel);border:1px dashed var(--o);border-radius:12px;padding:8px 12px;font-size:15px}
+#passbtn{padding:0 12px;border-radius:12px;border:1px solid var(--g);background:transparent;color:var(--g);font-weight:800;font-size:14px;cursor:pointer}
+#home p{color:var(--dim);margin:0 0 14px;line-height:1.4}
+.lvl:disabled{opacity:.5;cursor:default}
+#live{font-size:13px;color:var(--dim);display:flex;gap:10px;flex-wrap:wrap}
+#online{flex:1;overflow-y:auto;min-height:0}
+#online p{color:var(--dim);margin:0 0 8px}
+.pl{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);margin-bottom:6px}
+#gridwrap{flex:1;overflow-y:auto;min-height:0;display:flex;flex-direction:column;align-items:center;gap:5px}
+.row{display:flex;gap:5px}
+.tile{width:var(--t);height:var(--t);border:2px solid var(--line);border-radius:8px;display:grid;place-items:center;font-weight:800;font-size:calc(var(--t)*.5);background:var(--panel)}
+.tile.f{border-color:var(--dim)}
+.tile.g,.tile.o,.tile.r{color:#fff;border-color:transparent}
+.tile.g{background:var(--g)}.tile.o{background:var(--o)}.tile.r{background:var(--r)}
+#res{text-align:center;min-height:22px;font-size:16px;line-height:1.4}
+#res b{font-size:19px}
+#res .row2{display:flex;gap:10px;margin-top:8px}
+#res button{flex:1;height:48px;border-radius:12px;border:1px solid var(--g);background:transparent;font-size:16px}
+#res button.m{background:var(--g);color:#fff;font-weight:700}
+#kb{display:flex;flex-direction:column;gap:6px}
+.kr{display:flex;justify-content:center;gap:5px}
+.k{flex:1;max-width:44px;height:48px;border:0;border-radius:8px;background:var(--key);font-size:16px;font-weight:700}
+.k.w{max-width:64px;font-size:13px}
+.k.g{background:var(--g);color:#fff}.k.o{background:var(--o);color:#fff}
+.k.r{background:var(--r);color:#fff;opacity:.35}
+.k:active{transform:scale(.92)}
+.pop{animation:pop .25s}
+@keyframes pop{50%{transform:scale(1.12)}}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){.pop{animation:none}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header><h1>Kelime Avı</h1><span id="score">0 puan</span></header>
+  <div id="home" hidden>
+    <p>Tanımı oku, İngilizce kelimeyi bul. Yeşil: yeri doğru. Turuncu: harf var, yeri yanlış. Kırmızı: harf kelimede yok.</p>
+    <button class="lvl" id="mStreak"><span><b>Seri Modu</b><small>Rastgele kelimeler, skor arttıkça zorlaşır. 3 canın var.</small></span><span>Başla</span></button>
+    <button class="lvl" id="mPractice"><span><b>Alıştırma</b><small>Seviyeni seç, rahatça çalış.</small></span><span>Başla</span></button>
+    <button class="lvl" id="mOnline"><span><b>Online</b><small>1v1 veya grup, oda koduyla.</small></span><span>Gir</span></button>
+    <button class="lvl" id="mProf"><span><b id="profT">Profil</b><small id="profS">Giriş yap veya kayıt ol</small></span><span>Aç</span></button>
+    <button class="lvl" id="mLb"><span><b>Skor tablosu</b><small>Seri Modu rekorları.</small></span><span>Aç</span></button>
+  </div>
+  <div id="online" hidden></div>
+  <div id="menu" hidden>
+    <p>Tanımı oku, İngilizce kelimeyi bul. Yeşil: yeri doğru. Turuncu: harf var ama yeri yanlış. Kırmızı: harf kelimede yok ve klavyeden elenir. 3. denemeden sonra ? butonuyla Türkçe ipucu alabilirsin, ama 10 puan düşer.</p>
+    <div id="lvls"></div>
+    <button class="lvl" id="toHome" style="justify-content:center">Ana menü</button>
+  </div>
+  <div id="game" hidden>
+    <div id="top"><button id="back">Seviyeler</button><span id="badge"></span></div>
+    <div id="live" hidden></div>
+    <div id="defrow"><div id="def"></div><button id="hintbtn" hidden aria-label="İpucu al, 10 puan düşer">?</button><button id="passbtn" hidden>Pas</button></div>
+    <div id="hinttxt" hidden></div>
+    <div id="gridwrap"></div>
+    <div id="res"></div>
+    <div id="kb"></div>
+  </div>
+</div>
+<script>
+const LV=[['B1',10,'Günlük konuşma kelimeleri'],['B1+',15,'Biraz daha zor'],['B2',20,'Akıcı kullanım'],['B2+',25,'İleri kelimeler'],['C1',30,'Uzman seviyesi']];
+const W=[
+['travel|to go from one place to another, often a long way','budget|a plan for how much money you will spend','ticket|a piece of paper that lets you enter a place or travel','invite|to ask someone to come to an event','narrow|small in width; not wide','damage|harm that makes something broken or less useful','advice|an opinion about what someone should do','borrow|to take something and give it back later','reduce|to make something smaller or less','notice|to see or become aware of something','polite|behaving in a way that shows good manners','gather|to bring or come together in one place','brave|not afraid of danger or pain','crowd|a large number of people in one place','garden|a piece of land where flowers or vegetables grow','bridge|a structure that carries a road or path over water','lazy|not willing to work or make an effort','clever|quick at learning and understanding things','empty|having nothing inside','silent|making no sound at all','beach|an area of sand or stones next to the sea','basket|a container made of thin strips, used to carry things','market|a place where people buy and sell goods','kitchen|a room where food is prepared and cooked','winter|the coldest season of the year','doctor|a person whose job is to treat sick people','pocket|a small bag sewn into clothes for carrying small things','forest|a large area covered with trees','island|a piece of land surrounded by water','lonely|sad because you have no friends or company','nervous|worried or a little afraid about something','proud|feeling pleased about something you or others have done','rescue|to save someone from danger','repair|to fix something that is broken','shelf|a flat board fixed to a wall for keeping things on','sudden|happening quickly and without warning','tiny|extremely small','wallet|a small flat case for money and cards','whisper|to speak very quietly','wonder|to think about something and want to know more','useful|helpful for doing or getting something','valley|low land between hills or mountains','volunteer|a person who works without being paid','weather|the conditions outside, such as rain, sun or wind','weekend|Saturday and Sunday','accident|something bad that happens by chance and causes damage or injury','address|the details of where someone lives or works','arrive|to reach a place at the end of a journey','bottle|a container with a narrow neck, used for liquids','bother|to cause someone trouble or annoy them','careful|paying attention to avoid mistakes or danger','cheap|not costing much money','comfort|a pleasant feeling of being relaxed and free from pain','correct|right; without mistakes','cotton|a soft cloth or thread made from a plant','decide|to choose after thinking about it','desert|a very dry area with little rain and few plants','direct|going straight to a place without stopping or turning','disease|an illness that affects a person, animal or plant','distance|the amount of space between two places','double|twice as much or as many','dream|images and stories you see in your mind while sleeping','enough|as much as is needed','escape|to get away from a place or a danger','event|something that happens, especially something important','exact|completely correct in every detail','factory|a building where goods are made by machines','gentle|kind and calm; not rough','fever|a body temperature that is higher than normal','fight|to use force against another person','flight|a journey by aeroplane','foreign|from or connected with another country','friendly|kind and pleasant towards other people','furniture|things such as tables and chairs that you put in a room','guest|a person who is invited to your home or an event','guide|a person who shows tourists around a place','habit|something you do often without thinking','honest|always telling the truth','hungry|wanting to eat because you have not eaten','hurry|to move or do something quickly','injury|damage to a part of the body','journey|the act of travelling from one place to another','knowledge|facts and skills that you have learned','laugh|to make sounds with your voice that show you think something is funny','mistake|something you do that is wrong','mountain|a very high hill','neighbour|a person who lives next to you or near you','opinion|what you think about something','parcel|something wrapped in paper to be sent by post','patient|able to wait calmly without getting angry','pleasant|enjoyable and nice','promise|to say that you will definitely do something','recipe|instructions for cooking a particular dish','receive|to get something that someone gives or sends you','salary|money paid to an employee every month','sentence|a group of words that expresses a complete idea','shout|to speak very loudly','spend|to use money to buy things','strange|unusual or unexpected in a way that is hard to understand','thirsty|wanting to drink something'],
+['ancient|very old, from a time long ago','deliver|to take goods or messages to a person or place','support|to help or encourage someone','prevent|to stop something from happening','improve|to become or make something better','recover|to get better after being ill or in trouble','request|to ask for something politely or formally','concern|a feeling of worry about something important','explore|to travel around a place to learn about it','benefit|a good or helpful effect','respond|to answer or react to something','capable|having the ability to do something well','suggest|to put forward an idea for someone to consider','ignore|to pay no attention to someone or something','abroad|in or to a foreign country','absorb|to take in a liquid, information or energy','access|the right or ability to use or enter something','accurate|correct and exact','adapt|to change so that you can deal with a new situation','admire|to respect and like someone or something very much','admit|to agree that something is true, often unwillingly','advantage|something that puts you in a better position','afford|to have enough money to pay for something','alarm|a sudden feeling of fear, or a device that warns of danger','announce|to tell people something publicly','apology|a statement saying you are sorry','appeal|to make a serious request for help or support','approach|to come near to something','attitude|the way you think and feel about something','avoid|to stay away from something or stop it happening','aware|knowing that something exists or is happening','behave|to act in a particular way','belief|a strong feeling that something is true','border|the line that separates two countries','branch|a part of a tree, or a local office of a large company','cancel|to decide that a planned event will not happen','category|a group of things that share the same features','challenge|something new and difficult that tests your ability','character|the qualities that make a person different from others','climate|the usual weather conditions in a region','collapse|to fall down suddenly','combine|to join two or more things together','comment|something you say that gives an opinion','compete|to try to win against others','complain|to say that you are not satisfied with something','confident|sure of your own abilities','consider|to think carefully about something','consume|to eat, drink or use something','convince|to make someone believe something','costume|clothes worn to look like someone else','crisis|a time of great danger or difficulty','curious|wanting to learn or know about something','custom|a traditional way of behaving in a society','debate|a formal discussion of a subject','declare|to say something officially or strongly','decrease|to become smaller in size or number','defend|to protect someone or something from attack','definite|clear and certain; not likely to change','depend|to be decided by something else','describe|to say what someone or something is like','destroy|to damage something so badly that it cannot be used','develop|to grow or change into something bigger or better','disappear|to go out of sight','discover|to find something for the first time','distant|far away in space or time','donate|to give money or goods to help others','doubt|a feeling of not being sure','effort|physical or mental energy used to do something','embarrass|to make someone feel shy or ashamed','emergency|a sudden dangerous situation that needs fast action','encourage|to give someone confidence or hope','enormous|extremely large','environment|the natural world of land, air, water and living things','essential|absolutely necessary','exhausted|extremely tired','expand|to become larger','familiar|well known to you','fortune|a very large amount of money','generous|willing to give more than is expected','genuine|real and not false','guilty|feeling sorry because you have done something wrong','hesitate|to pause before doing something because you are not sure','imagine|to form a picture of something in your mind','impress|to make people admire you','include|to have something as one part of a whole','increase|to become larger in number or amount','influence|the power to affect how someone thinks or acts','insist|to say very firmly that something is true or must happen','install|to put equipment or software in place ready for use','justice|fair treatment according to the law','launch|to start something new or send a product into use','manage|to be able to do something difficult','neglect|to fail to give enough care or attention','obvious|easy to see or understand','occur|to happen','origin|the place or moment where something begins','permit|to allow someone to do something','pressure|the feeling of being forced to do something','procedure|a set of actions for doing something','refuse|to say that you will not do something'],
+['evidence|facts or signs that show something is true','achieve|to succeed in doing something after effort','flexible|able to change or bend easily','contrast|a clear difference between two things','ambition|a strong wish to be successful','reluctant|not willing to do something','generate|to produce or create something','obstacle|something that blocks the way or makes progress hard','tendency|a habit of behaving in a particular way','reliable|able to be trusted to do what is expected','estimate|to guess the size or value of something','scarce|not enough in quantity; hard to find','conclude|to decide something after thinking about the facts','random|happening without any plan or pattern','abandon|to leave someone or something completely','abundant|existing in large quantities','accommodate|to provide a place for someone to stay','accumulate|to gather more and more of something over time','acknowledge|to accept that something is true or exists','acquire|to get something by buying, learning or being given it','adequate|enough in quantity or good enough in quality','allocate|to give something officially for a particular purpose','alternative|another choice that you can make','anticipate|to expect something and get ready for it','apparent|easy to see or understand','appreciate|to understand the value of something; to be grateful','arbitrary|based on chance rather than a clear reason','assemble|to fit the parts of something together','assess|to judge the quality or size of something','assume|to accept that something is true without proof','assure|to tell someone confidently that something is true','attribute|to say that something is caused by something else','bias|an unfair preference for one side','boundary|a line that marks the edge of an area','campaign|a series of actions to achieve a particular aim','capacity|the largest amount that something can hold','cautious|careful to avoid danger or mistakes','circumstance|a fact or condition that affects a situation','collaborate|to work together with others on something','commit|to promise to do something or give yourself fully to it','compensate|to give something to make up for a loss','complex|made of many parts and hard to understand','comprehensive|including everything that is needed','consequence|a result of something that happened earlier','considerable|fairly large in size or amount','consistent|always behaving or happening in the same way','constant|happening all the time without change','contribute|to give something to help achieve a result','controversy|a public argument about something people disagree on','convenient|easy to use or suitable for your needs','credible|able to be believed or trusted','criteria|standards used for judging something','crucial|extremely important','deliberate|done on purpose','demonstrate|to show clearly how something works','derive|to get something from a source','dilemma|a difficult choice between two options','discipline|training that teaches people to obey rules','discourage|to make someone less confident about doing something','dispute|a serious argument between people or groups','distinct|clearly different from something else','diverse|including many different kinds','dominate|to have the most power or importance','durable|able to last a long time without breaking','eliminate|to remove something completely','emerge|to come out or become known','emphasis|special importance given to something','enable|to make it possible for someone to do something','encounter|to meet someone or something unexpectedly','enhance|to improve the quality of something','ensure|to make certain that something happens','establish|to start an organisation or set something up','exceed|to be more than a number or limit','exclude|to leave someone or something out','exploit|to use something fully, often unfairly','external|coming from or existing outside something','feasible|possible to do','fluctuate|to keep changing, going up and down','formulate|to prepare something carefully and clearly','fundamental|forming the most basic part of something','gradual|happening slowly over a long time','harmony|a state of peaceful agreement','hypothesis|an idea that has not yet been proved','identical|exactly the same','illustrate|to explain something by giving examples or pictures','implement|to put a plan or system into action','imply|to suggest something without saying it directly','incentive|something that encourages you to do something','indicate|to show that something exists or is true','initiative|the ability to act on your own before others tell you to','innovation|a new idea or method','insight|a deep understanding of something','integrate|to combine parts so that they work well together','interpret|to explain the meaning of something','isolate|to separate something from others','legitimate|allowed by law or reasonable','maintain|to keep something in good condition','mediocre|not very good; of only average quality','negotiate|to discuss something to reach an agreement','neutral|not supporting either side in a disagreement'],
+['inevitable|certain to happen and impossible to avoid','versatile|able to be used in many different ways','resilient|able to recover quickly from difficulties','meticulous|paying great attention to small details','ambiguous|having more than one possible meaning','inherent|existing as a natural, permanent part of something','mitigate|to make something bad less severe','prevalent|common at a particular time or place','plausible|seeming likely to be true or reasonable','tangible|clear enough to be seen or felt; real','diligent|showing careful and steady effort','reinforce|to make something stronger','deteriorate|to become worse over time','scrutiny|careful and close examination','abstract|existing as an idea rather than something physical','adhere|to stick to something or follow a rule closely','advocate|to publicly support an idea or plan','aesthetic|connected with beauty and art','albeit|although','lenient|not strict when punishing or judging','analogy|a comparison that shows how two things are alike','anonymous|without the name of the person being known','arbitrate|to settle a disagreement as a neutral judge','articulate|able to express ideas clearly in words','assertive|confident and willing to state your opinion','authentic|real and not copied','autonomy|the freedom to make your own decisions','benevolent|kind and helping others','bureaucracy|a complicated system of official rules','coherent|logical and easy to follow','coincide|to happen at the same time','commemorate|to remember an important event with a ceremony','compatible|able to exist or work together','complacent|too satisfied with yourself to try harder','compromise|an agreement in which each side gives up something','concise|giving a lot of information in few words','condemn|to say strongly that something is wrong','conform|to behave according to rules or customs','conscientious|careful to do your work well','consensus|a general agreement among a group','contemplate|to think about something for a long time','contradict|to say the opposite of what someone else has said','controversial|causing strong disagreement','convey|to communicate an idea or feeling','credibility|the quality of being trusted and believed','cynical|believing that people only care about themselves','deduce|to reach a conclusion using the facts you have','deem|to consider something in a particular way','detrimental|causing harm or damage','discrepancy|a difference between things that should be the same','disparity|a great difference, often an unfair one','dismiss|to decide that something is not worth considering','disrupt|to interrupt something so it cannot continue normally','divert|to change the direction of something','dubious|not certain to be good or true','elaborate|to give more details about something','elusive|difficult to find, catch or achieve','empirical|based on experience or experiments','endorse|to publicly say that you support something','enigma|a person or thing that is mysterious','equilibrium|a state of balance','exemplify|to be a typical example of something','explicit|stated clearly and in detail','facilitate|to make something easier to do','fallacy|a false belief based on wrong reasoning','flourish|to grow well and be successful','formidable|frightening because of great size or strength','gratify|to please someone or satisfy a wish','hinder|to make it difficult for something to happen','hostile|unfriendly and ready to oppose','implicit|suggested without being directly stated','impartial|not supporting any side more than another','inadvertent|not done on purpose','indifferent|not interested in something','indigenous|originally living in a place','infer|to form an opinion from evidence','ingenious|very clever and original','innate|a quality you are born with','integrity|the quality of being honest and having strong principles','intricate|having many small parts that fit together in a complex way','intuition|the ability to understand something without reasoning','leverage|to use something to get the greatest benefit','lucrative|producing a lot of money','magnitude|the great size or importance of something','marginal|very small in amount or importance','momentum|the force that keeps something moving or developing','notorious|famous for something bad','nuance|a very small difference in meaning or feeling','obsolete|no longer used because something newer exists','paradox|a situation that seems to contradict itself','perceive|to notice or understand something','perpetual|continuing forever without stopping','precedent|an earlier event used as an example for later ones','profound|very deep or serious','rational|based on reason and clear thinking','redundant|no longer needed','reconcile|to make two opposing ideas or people agree','substantial|large in amount or importance','subtle|not obvious; delicate or slight','sustain|to keep something going for a long time'],
+['ubiquitous|seeming to be everywhere at the same time','ephemeral|lasting for only a very short time','pragmatic|dealing with things in a practical, realistic way','exacerbate|to make a bad situation worse','alleviate|to make pain or a problem less severe','ostensible|appearing to be true but perhaps not really so','circumvent|to find a way around a rule or obstacle','tenacious|holding firmly to something; very determined','scrupulous|very careful to do what is right or correct','candid|honest and direct, even if it is uncomfortable','eloquent|able to speak or write in a clear and powerful way','fastidious|very concerned about accuracy and cleanliness','superfluous|more than is needed','ambivalent|having mixed feelings about something','juxtapose|to place two things together to show a contrast','acquiesce|to accept something without protest','adversity|a difficult or unlucky situation','aloof|distant and not friendly','amalgamate|to combine into one organisation or thing','ameliorate|to make a bad situation better','anomaly|something that is different from what is normal','antithesis|the exact opposite of something','apathy|a lack of interest or enthusiasm','arduous|difficult and needing a lot of effort','astute|clever at seeing what will give an advantage','audacious|willing to take bold risks','austere|plain and simple, without comfort or decoration','belligerent|aggressive and ready to fight','bolster|to support or strengthen something','brevity|the quality of being short and to the point','cacophony|a loud and unpleasant mixture of sounds','capricious|changing mood or behaviour suddenly without reason','clandestine|kept secret, often because it is not allowed','cogent|clear, logical and convincing','colloquial|used in informal, everyday speech','conducive|making a good result likely','connotation|an idea or feeling that a word suggests','conundrum|a confusing problem that is hard to solve','copious|existing in large amounts','corroborate|to give support to a statement with more evidence','cursory|done quickly without looking at details','dearth|a serious lack of something','debilitating|making someone very weak','delineate|to describe or show something in detail','denounce|to publicly say that something is very bad','derogatory|showing a lack of respect','dichotomy|a division into two completely different parts','diffident|shy and lacking confidence','discern|to notice or understand something that is not obvious','disseminate|to spread information widely','dogmatic|insisting that your beliefs are the only correct ones','eccentric|behaving in a strange or unusual way','efficacy|the power to produce the result you want','egregious|shockingly bad','elucidate|to make something clear by explaining it','embellish|to make something more attractive or interesting by adding details','emulate|to try to be as good as someone you admire','erratic|not regular or steady in behaviour or movement','erudite|having or showing great knowledge from study','esoteric|understood by only a small group of people','exemplary|very good and worth copying','exonerate|to officially say that someone is not guilty','expedite|to make something happen sooner or faster','extraneous|not directly connected with the subject','fallible|able to make mistakes','fervent|showing strong and sincere feeling','flagrant|shocking because it is done openly','fortuitous|happening by chance, especially with a good result','frugal|careful about spending money','futile|having no chance of success','gregarious|enjoying being with other people','hackneyed|used so often that it has lost its meaning','hegemony|control or influence by one country or group over others','idiosyncrasy|an unusual habit or way of behaving','impetus|a force that makes something start or develop faster','impervious|not affected by something','incessant|continuing without stopping','inconspicuous|not easily noticed','indispensable|so important that you cannot manage without it','insidious|harmful but developing slowly without being noticed','intrinsic|belonging naturally to something','irrevocable|impossible to change or undo','laconic|using very few words','lament|to express sadness or regret about something','lucid|clear and easy to understand','magnanimous|generous and forgiving toward others','malleable|easily shaped or influenced','mundane|ordinary and not interesting','nebulous|unclear and not well defined','nefarious|evil or criminal','obscure|not well known or hard to understand','obstinate|refusing to change your mind','ominous|suggesting that something bad will happen','opulent|very rich and luxurious','ostentatious|showing wealth in a way meant to impress people','paramount|more important than anything else','penchant|a strong liking for something','pervasive|spreading through every part of something','pinnacle|the highest or most successful point','poignant|causing a strong feeling of sadness']
+];
+const $=id=>document.getElementById(id);
+const HT={travel:'yolculuk yapmak',budget:'para planı',ticket:'bilet',invite:'davet etmek',narrow:'dar',damage:'zarar',advice:'öğüt, tavsiye',borrow:'ödünç almak',reduce:'azaltmak',notice:'fark etmek',polite:'kibar',gather:'toplanmak',brave:'cesur',crowd:'kalabalık',garden:'bahçe',bridge:'köprü',lazy:'tembel',clever:'zeki',empty:'boş',silent:'sessiz',beach:'plaj',basket:'sepet',market:'pazar',kitchen:'mutfak',winter:'kış',doctor:'hekim',pocket:'cep',forest:'orman',island:'ada',lonely:'yalnız',nervous:'gergin, tedirgin',proud:'gururlu',rescue:'kurtarmak',repair:'tamir etmek',shelf:'raf',sudden:'ani',tiny:'çok küçük',wallet:'cüzdan',whisper:'fısıldamak',wonder:'merak etmek',useful:'işe yarar',valley:'vadi',volunteer:'gönüllü',weather:'hava durumu',weekend:'hafta sonu',accident:'kaza',address:'adres',arrive:'varmak',bottle:'şişe',bother:'rahatsız etmek',careful:'dikkatli',cheap:'ucuz',comfort:'rahatlık',correct:'doğru',cotton:'pamuk',decide:'karar vermek',desert:'çöl',direct:'doğrudan',disease:'hastalık',distance:'mesafe',double:'iki katı',dream:'rüya',enough:'yeterli',escape:'kaçmak',event:'olay, etkinlik',exact:'tam, kesin',factory:'fabrika',gentle:'nazik',fever:'ateş',fight:'kavga etmek',flight:'uçuş',foreign:'yabancı',friendly:'arkadaş canlısı',furniture:'mobilya',guest:'misafir',guide:'rehber',habit:'alışkanlık',honest:'dürüst',hungry:'aç',hurry:'acele etmek',injury:'yaralanma',journey:'yolculuk',knowledge:'bilgi',laugh:'gülmek',mistake:'hata',mountain:'dağ',neighbour:'komşu',opinion:'fikir',parcel:'paket',patient:'sabırlı',pleasant:'hoş',promise:'söz vermek',recipe:'yemek tarifi',receive:'almak',salary:'maaş',sentence:'cümle',shout:'bağırmak',spend:'harcamak',strange:'garip',thirsty:'susamış',
+ancient:'çok eski',deliver:'teslim etmek',support:'desteklemek',prevent:'önlemek',improve:'geliştirmek',recover:'iyileşmek',request:'rica etmek',concern:'endişe',explore:'keşfetmek',benefit:'fayda',respond:'cevap vermek',capable:'yetenekli',suggest:'önermek',ignore:'görmezden gelmek',abroad:'yurt dışı',absorb:'emmek',access:'erişim',accurate:'doğru, isabetli',adapt:'uyum sağlamak',admire:'hayran olmak',admit:'kabul etmek',advantage:'avantaj',afford:'gücü yetmek',alarm:'alarm, korku',announce:'duyurmak',apology:'özür',appeal:'yalvarmak, çekicilik',approach:'yaklaşmak',attitude:'tutum',avoid:'kaçınmak',aware:'farkında',behave:'davranmak',belief:'inanç',border:'sınır',branch:'dal, şube',cancel:'iptal etmek',category:'kategori',challenge:'meydan okuma',character:'karakter',climate:'iklim',collapse:'çökmek',combine:'birleştirmek',comment:'yorum',compete:'yarışmak',complain:'şikayet etmek',confident:'kendine güvenen',consider:'düşünmek',consume:'tüketmek',convince:'ikna etmek',costume:'kostüm',crisis:'kriz',curious:'meraklı',custom:'gelenek',debate:'tartışma',declare:'ilan etmek',decrease:'azalmak',defend:'savunmak',definite:'kesin',depend:'bağlı olmak',describe:'anlatmak',destroy:'yok etmek',develop:'gelişmek',disappear:'kaybolmak',discover:'bulmak',distant:'uzak',donate:'bağışlamak',doubt:'şüphe',effort:'çaba',embarrass:'utandırmak',emergency:'acil durum',encourage:'cesaretlendirmek',enormous:'devasa',environment:'çevre',essential:'çok gerekli',exhausted:'bitkin',expand:'genişlemek',familiar:'tanıdık',fortune:'servet',generous:'cömert',genuine:'gerçek',guilty:'suçlu',hesitate:'tereddüt etmek',imagine:'hayal etmek',impress:'etkilemek',include:'içermek',increase:'artmak',influence:'etki',insist:'ısrar etmek',install:'kurmak',justice:'adalet',launch:'başlatmak',manage:'başarmak, yönetmek',neglect:'ihmal etmek',obvious:'açık, belli',occur:'meydana gelmek',origin:'köken',permit:'izin vermek',pressure:'baskı',procedure:'işlem, yöntem',refuse:'reddetmek',
+evidence:'kanıt',achieve:'başarmak',flexible:'esnek',contrast:'zıtlık',ambition:'hırs, hedef',reluctant:'isteksiz',generate:'üretmek',obstacle:'engel',tendency:'eğilim',reliable:'güvenilir',estimate:'tahmin etmek',scarce:'kıt',conclude:'sonuca varmak',random:'rastgele',abandon:'terk etmek',abundant:'bol',accommodate:'yer sağlamak',accumulate:'birikmek',acknowledge:'kabul etmek, tanımak',acquire:'edinmek',adequate:'yeterli',allocate:'ayırmak, tahsis etmek',alternative:'alternatif',anticipate:'önceden tahmin etmek',apparent:'belli, görünür',appreciate:'takdir etmek',arbitrary:'keyfi',assemble:'monte etmek',assess:'değerlendirmek',assume:'varsaymak',assure:'güvence vermek',attribute:'bağlamak, özellik',bias:'önyargı',boundary:'sınır çizgisi',campaign:'kampanya',capacity:'kapasite',cautious:'ihtiyatlı',circumstance:'durum, koşul',collaborate:'işbirliği yapmak',commit:'taahhüt etmek',compensate:'telafi etmek',complex:'karmaşık',comprehensive:'kapsamlı',consequence:'sonuç',considerable:'hatırı sayılır',consistent:'tutarlı',constant:'sürekli',contribute:'katkıda bulunmak',controversy:'tartışma konusu',convenient:'uygun, elverişli',credible:'inandırıcı',criteria:'ölçütler',crucial:'çok önemli',deliberate:'kasıtlı',demonstrate:'göstermek',derive:'türetmek',dilemma:'ikilem',discipline:'disiplin',discourage:'cesaretini kırmak',dispute:'anlaşmazlık',distinct:'belirgin',diverse:'çeşitli',dominate:'hakim olmak',durable:'dayanıklı',eliminate:'ortadan kaldırmak',emerge:'ortaya çıkmak',emphasis:'vurgu',enable:'olanak vermek',encounter:'karşılaşmak',enhance:'güçlendirmek',ensure:'sağlamak, garantilemek',establish:'kurmak',exceed:'aşmak',exclude:'dışlamak',exploit:'sömürmek',external:'dış',feasible:'yapılabilir',fluctuate:'inip çıkmak',formulate:'formüle etmek',fundamental:'temel',gradual:'yavaş yavaş olan',harmony:'uyum',hypothesis:'varsayım',identical:'aynı',illustrate:'örnekle açıklamak',implement:'uygulamak',imply:'ima etmek',incentive:'teşvik',indicate:'işaret etmek',initiative:'girişim',innovation:'yenilik',insight:'kavrayış',integrate:'bütünleştirmek',interpret:'yorumlamak',isolate:'yalıtmak, ayırmak',legitimate:'meşru',maintain:'sürdürmek',mediocre:'vasat',negotiate:'pazarlık etmek',neutral:'tarafsız',
+inevitable:'kaçınılmaz',versatile:'çok yönlü',resilient:'dirençli',meticulous:'titiz',ambiguous:'belirsiz, iki anlamlı',inherent:'doğuştan gelen',mitigate:'hafifletmek',prevalent:'yaygın',plausible:'akla yatkın',tangible:'elle tutulur',diligent:'çalışkan',reinforce:'pekiştirmek',deteriorate:'kötüleşmek',scrutiny:'yakından inceleme',abstract:'soyut',adhere:'bağlı kalmak',advocate:'savunucu, savunmak',aesthetic:'estetik',albeit:'her ne kadar',lenient:'hoşgörülü',analogy:'benzetme',anonymous:'adsız',arbitrate:'hakemlik yapmak',articulate:'düzgün ifade eden',assertive:'kendinden emin',authentic:'orijinal',autonomy:'özerklik',benevolent:'iyiliksever',bureaucracy:'bürokrasi',coherent:'tutarlı ve anlaşılır',coincide:'aynı anda olmak',commemorate:'anmak',compatible:'uyumlu',complacent:'rehavete kapılmış',compromise:'uzlaşma',concise:'kısa ve öz',condemn:'kınamak',conform:'uymak',conscientious:'vicdanlı, özenli',consensus:'fikir birliği',contemplate:'derin düşünmek',contradict:'çelişmek',controversial:'tartışmalı',convey:'iletmek',credibility:'güvenilirlik',cynical:'alaycı, kuşkucu',deduce:'çıkarım yapmak',deem:'saymak',detrimental:'zararlı',discrepancy:'tutarsızlık',disparity:'eşitsizlik',dismiss:'reddetmek, işten çıkarmak',disrupt:'aksatmak',divert:'yönünü değiştirmek',dubious:'şüpheli',elaborate:'ayrıntılandırmak',elusive:'yakalanması zor',empirical:'deneysel',endorse:'onaylamak',enigma:'bilmece, sır',equilibrium:'denge',exemplify:'örnek olmak',explicit:'açık ve net',facilitate:'kolaylaştırmak',fallacy:'yanılgı',flourish:'gelişip serpilmek',formidable:'göz korkutucu',gratify:'memnun etmek',hinder:'engellemek',hostile:'düşmanca',implicit:'örtük',impartial:'tarafsız',inadvertent:'istemeden yapılan',indifferent:'ilgisiz',indigenous:'yerli',infer:'anlam çıkarmak',ingenious:'dahice',innate:'doğuştan',integrity:'dürüstlük',intricate:'girift, karmaşık',intuition:'sezgi',leverage:'kaldıraç gibi kullanmak',lucrative:'kazançlı',magnitude:'büyüklük',marginal:'önemsiz derecede az',momentum:'ivme',notorious:'kötü ünlü',nuance:'ince fark',obsolete:'demode, kullanılmayan',paradox:'çelişki',perceive:'algılamak',perpetual:'sürekli, sonsuz',precedent:'emsal',profound:'derin',rational:'mantıklı',redundant:'gereksiz',reconcile:'barıştırmak',substantial:'hatırı sayılır büyüklükte',subtle:'ince, belli belirsiz',sustain:'sürdürmek',
+ubiquitous:'her yerde bulunan',ephemeral:'kısa ömürlü',pragmatic:'pratik düşünen',exacerbate:'kötüleştirmek',alleviate:'hafifletmek',ostensible:'görünüşte',circumvent:'dolanmak, bypass etmek',tenacious:'azimli, inatçı',scrupulous:'çok dürüst ve titiz',candid:'açık sözlü',eloquent:'etkili konuşan',fastidious:'aşırı titiz',superfluous:'fazlalık',ambivalent:'kararsız duygular',juxtapose:'yan yana koymak',acquiesce:'boyun eğmek',adversity:'sıkıntı, zorluk',aloof:'mesafeli',amalgamate:'birleştirmek',ameliorate:'iyileştirmek',anomaly:'sıra dışı durum',antithesis:'tam zıddı',apathy:'ilgisizlik',arduous:'zahmetli',astute:'kurnaz, zeki',audacious:'gözü pek',austere:'sade, sert',belligerent:'kavgacı',bolster:'desteklemek',brevity:'kısalık',cacophony:'gürültü',capricious:'kaprisli',clandestine:'gizli',cogent:'ikna edici',colloquial:'günlük konuşma dili',conducive:'elverişli',connotation:'çağrışım',conundrum:'zor bilmece',copious:'bol miktarda',corroborate:'doğrulamak',cursory:'baştan savma',dearth:'kıtlık',debilitating:'güçten düşüren',delineate:'ana hatlarıyla çizmek',denounce:'ifşa edip kınamak',derogatory:'aşağılayıcı',dichotomy:'ikiye bölünme',diffident:'çekingen',discern:'ayırt etmek',disseminate:'yaymak',dogmatic:'dogmatik, katı fikirli',eccentric:'tuhaf, garip',efficacy:'etkililik',egregious:'çok kötü',elucidate:'açıklığa kavuşturmak',embellish:'süslemek',emulate:'taklit etmeye çalışmak',erratic:'düzensiz',erudite:'bilgili',esoteric:'yalnızca uzmanların anladığı',exemplary:'örnek alınacak',exonerate:'aklamak',expedite:'hızlandırmak',extraneous:'konu dışı',fallible:'hata yapabilen',fervent:'ateşli',flagrant:'göz önünde işlenen',fortuitous:'şans eseri',frugal:'tutumlu',futile:'boşuna',gregarious:'sosyal, insan sever',hackneyed:'basmakalıp',hegemony:'egemenlik',idiosyncrasy:'kişisel tuhaflık',impetus:'itici güç',impervious:'etkilenmeyen',incessant:'durmak bilmeyen',inconspicuous:'dikkat çekmeyen',indispensable:'vazgeçilmez',insidious:'sinsi',intrinsic:'içsel',irrevocable:'geri alınamaz',laconic:'az sözlü',lament:'yas tutmak, yakınmak',lucid:'net, anlaşılır',magnanimous:'yüce gönüllü',malleable:'şekillendirilebilir',mundane:'sıradan',nebulous:'muğlak',nefarious:'kötü niyetli',obscure:'az bilinen',obstinate:'inatçı',ominous:'uğursuz',opulent:'gösterişli, zengin',ostentatious:'gösteriş meraklısı',paramount:'en önemli',penchant:'düşkünlük',pervasive:'her yere yayılan',pinnacle:'zirve',poignant:'içe dokunan'};
+let lv=0,word='',def='',guesses=[],cur='',over=false,score=0,tries=6,ks={},hintUsed=false;
+const bag=[[],[],[],[],[]];
+
+$('lvls').innerHTML=LV.map((l,i)=>'<button class="lvl" data-i="'+i+'"><span><b>'+l[0]+'</b><small>'+l[2]+'</small></span><span>x'+l[1]+'</span></button>').join('');
+document.querySelectorAll('#lvls .lvl').forEach(b=>b.onclick=()=>{mode='practice';lv=+b.dataset.i;next()});
+$('hintbtn').onclick=()=>{
+  if(over||hintUsed)return;
+  hintUsed=true;
+  const h=HT[word.toLowerCase()]||('ilk harf '+word[0]);
+  $('hinttxt').textContent='İpucu: '+h+' (-10 puan)';
+  $('hinttxt').hidden=false;
+  draw();
+};
+let mode='practice',run={passes:0,score:0,lives:3,streak:0,first:0,dead:false};
+function hud(){
+  if(mode==='streak')$('badge').textContent='♥'.repeat(run.lives)+' Seri '+run.streak+' Pas '+run.passes;
+  else if(mode==='online')oHud();
+  else $('badge').textContent='Seviye '+LV[lv][0];
+}
+function pickLevel(){
+  const t=Math.min(run.score/1200,1),a=[50,30,15,5],b=[5,15,30,50];
+  const w=a.map((x,i)=>x*(1-t)+b[i]*t);
+  let r=Math.random()*w.reduce((s,x)=>s+x,0);
+  for(let i=0;i<4;i++){r-=w[i];if(r<=0)return i}
+  return 3;
+}
+function startStreak(){
+  mode='streak';
+  run={lives:3,streak:0,first:0,passes:0,score:0,dead:false};
+  nextStreak();
+}
+function nextStreak(){lv=pickLevel();next()}
+function saveBest(){
+  let b=run.score;
+  try{b=Math.max(b,+localStorage.getItem('ka_best')||0);localStorage.setItem('ka_best',b)}catch(e){}
+  if(window.submitRun)submitRun();
+  return b;
+}
+function streakWin(n,p){
+  run.streak++;run.max=Math.max(run.max||0,run.streak);run.score+=p;
+  let m='<br>Seri: '+run.streak;
+  if(n===1){
+    run.first++;
+    if(run.first>=3){run.first=0;run.passes++;m+='. <b>Pas hakkı kazandın!</b>'}
+    else m+=' (üst üste ilk deneme: '+run.first+'/3)';
+  }else run.first=0;
+  return m;
+}
+function streakLose(){
+  run.lives--;run.streak=0;run.first=0;
+  if(run.lives<=0){run.dead=true;const b=saveBest();return '<br><b>Seri bitti.</b> Puan: '+run.score+', en iyi: '+b}
+  return '<br>1 can kaybettin, kalan: '+run.lives;
+}
+$('passbtn').onclick=()=>{
+  if(over||mode!=='streak'||run.passes<1)return;
+  run.passes--;nextStreak();
+};
+$('mStreak').onclick=startStreak;
+$('mPractice').onclick=()=>{$('home').hidden=true;$('menu').hidden=false};
+$('toHome').onclick=()=>{$('menu').hidden=true;$('home').hidden=false};
+$('back').onclick=()=>{
+  if(mode==='online'){oExit();return}
+  $('game').hidden=true;
+  if(mode==='streak'){if(!run.dead&&run.score>0)saveBest();$('home').hidden=false}
+  else $('menu').hidden=false;
+  $('score').textContent=score+' puan';
+};
+
+function next(){
+  let p;if(mode==='online'){const it=seq[si%seq.length];lv=it.l;p=it.w.split('|')}else{if(!bag[lv].length){bag[lv]=W[lv].map((_,i)=>i).sort(()=>Math.random()-.5)}
+  p=W[lv][bag[lv].pop()].split('|')}
+  word=p[0].toUpperCase();def=p[1];guesses=[];cur='';over=false;ks={};hintUsed=false;$('hinttxt').hidden=true;
+  tries=word.length>8?7:6;
+  $('menu').hidden=true;$('home').hidden=true;$('online').hidden=true;$('game').hidden=false;$('res').innerHTML='';
+  $('back').textContent=mode==='practice'?'Seviyeler':'Çık';
+  $('score').textContent=sc()+' puan';
+  hud();
+  $('def').innerHTML=def.charAt(0).toUpperCase()+def.slice(1)+'.<small>'+word.length+' harf</small>';
+  draw();
+}
+
+function evalG(g){
+  const s=Array(word.length).fill('r'),c={};
+  for(let i=0;i<word.length;i++){if(g[i]===word[i])s[i]='g';else c[word[i]]=(c[word[i]]||0)+1}
+  for(let i=0;i<word.length;i++){if(s[i]!=='g'&&c[g[i]]>0){s[i]='o';c[g[i]]--}}
+  return s;
+}
+
+function draw(){
+  const n=word.length,t=Math.min(52,Math.floor((Math.min(innerWidth,520)-28-(n-1)*5)/n));
+  const gw=$('gridwrap');gw.style.setProperty('--t',t+'px');
+  let h='';
+  guesses.forEach(g=>{h+='<div class="row">'+[...g.w].map((ch,i)=>'<div class="tile '+g.s[i]+'">'+ch+'</div>').join('')+'</div>'});
+  for(let r=guesses.length;r<tries;r++){
+    h+='<div class="row">';
+    for(let i=0;i<n;i++){const on=r===guesses.length&&i<cur.length;h+='<div class="tile'+(on?' f pop':'')+'">'+(on?cur[i]:'')+'</div>'}
+    h+='</div>';
+  }
+  gw.innerHTML=h;
+  $('hintbtn').hidden=!(guesses.length>=3&&!over&&!hintUsed);
+  const pb=$('passbtn');pb.hidden=!(mode==='streak'&&run.passes>0&&!over);pb.textContent='Pas ('+run.passes+')';
+  const rows=['QWERTYUIOP','ASDFGHJKL','ZXCVBNM'];
+  $('kb').innerHTML=rows.map((r,ri)=>'<div class="kr">'+(ri===2?'<button class="k w" data-k="ENTER">Gönder</button>':'')+[...r].map(ch=>'<button class="k '+(ks[ch]||'')+'" data-k="'+ch+'"'+(ks[ch]==='r'?' disabled':'')+'>'+ch+'</button>').join('')+(ri===2?'<button class="k w" data-k="DEL">Sil</button>':'')+'</div>').join('');
+  document.querySelectorAll('.k').forEach(b=>b.onclick=()=>press(b.dataset.k));
+}
+
+function press(k){
+  if(over)return;
+  if(k==='DEL'){cur=cur.slice(0,-1)}
+  else if(k==='ENTER'){
+    if(cur.length<word.length){$('res').textContent='Kelime '+word.length+' harfli olmalı.';return}
+    const s=evalG(cur);
+    guesses.push({w:cur,s});
+    [...cur].forEach((ch,i)=>{
+      if(s[i]==='g')ks[ch]='g';
+      else if(s[i]==='o'&&ks[ch]!=='g')ks[ch]='o';
+      else if(s[i]==='r'&&!word.includes(ch))ks[ch]='r';
+    });
+    const win=cur===word;cur='';
+    $('res').textContent='';
+    if(win){const p=Math.max(0,LV[lv][1]*(tries-guesses.length+1)-(hintUsed?10:0));if(mode==='practice')score+=p;finish('Doğru! <b>+'+p+' puan</b>'+(mode==='streak'?streakWin(guesses.length,p):mode==='online'?oWin(p):''))}
+    else if(guesses.length>=tries)finish('Haklar bitti. Cevap: <b>'+word+'</b>'+(mode==='streak'?streakLose():mode==='online'?oLose():''));
+  }
+  else if(cur.length<word.length&&ks[k]!=='r'){cur+=k}
+  draw();
+}
+
+function finish(msg){
+  over=true;hud();$('score').textContent=sc()+' puan';
+  $('res').innerHTML=msg+'<br><span style="color:var(--dim)">'+word+': '+def+'.</span><div class="row2"><button id="lv2">'+(mode==='practice'?'Seviyeler':mode==='streak'?'Ana menü':'Çık')+'</button><button class="m" id="nx">'+(mode==='streak'&&run.dead?'Yeniden oyna':mode==='online'&&ost.fin?'Sonuçlar':'Sonraki kelime')+'</button></div>';
+  $('lv2').onclick=()=>$('back').click();
+  $('nx').onclick=mode==='online'?oNext:mode==='streak'?(run.dead?startStreak:nextStreak):next;
+}
+
+document.addEventListener('keydown',e=>{
+  if($('game').hidden||e.ctrlKey||e.metaKey)return;
+  if(e.key==='Enter')press('ENTER');
+  else if(e.key==='Backspace')press('DEL');
+  else if(/^[a-zA-Z]$/.test(e.key))press(e.key.toUpperCase());
+});
+addEventListener('resize',()=>{if(!$('game').hidden)draw()});
+</script>
+<script>
+const SB_URL='https://bzijkiljqlruwupqwtcm.supabase.co',SB_KEY='sb_publishable_OIoMDW6WF-72Dg8DLQQvPQ_HHZ8JUfx';
+let sb=null,ch=null,isHost=false,myName='',started=false,tmr=null,cfg=null,seq=[],si=0,room='';
+const myId=Math.random().toString(36).slice(2,9),t0=Date.now(),LBL=['B1','B1+','B2','B2+','C1'];
+let ost={p:0,w:0,a:1,fin:false,end:0,n:0,m:'c'};
+const SEL='width:100%;padding:12px;margin-bottom:10px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--fg);font-size:16px;box-sizing:border-box';
+
+function esc(s){return String(s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';')}
+function sc(){return mode==='streak'?run.score:mode==='online'?ost.p:score}
+function on(h){$('online').innerHTML=h}
+function btn(id,t){return '<button class="lvl" id="'+id+'" style="justify-content:center">'+t+'</button>'}
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function mkSeq(seed,l){
+  const r=rng(seed),a=[];
+  (l<0?[0,1,2,3]:[l]).forEach(i=>W[i].forEach(w=>a.push({w,l:i})));
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+  return a;
+}
+function mine(){return{n:myName,t:t0,h:isHost?1:0,c:isHost?cfg:null,p:ost.p,w:ost.w,a:ost.a,d:ost.fin?1:0}}
+function plist(){
+  const s=ch.presenceState();
+  return Object.keys(s).map(k=>{const v=s[k][s[k].length-1];return{k,n:String(v.n||'?').slice(0,12),t:+v.t||0,h:v.h,c:v.c,p:+v.p||0,w:+v.w||0,a:v.a,d:v.d}});
+}
+function rank(L){return L.sort((a,b)=>cfg&&cfg.m==='s'?(b.w-a.w)||(b.p-a.p):(b.p-a.p))}
+
+function oHome(){
+  $('home').hidden=true;$('online').hidden=false;
+  if(!window.supabase||SB_URL.indexOf('PASTE')===0){
+    on('<p>Online mod için Supabase adresi ve anahtarı dosyaya eklenmeli.</p>'+btn('ob','Ana menü'));
+    $('ob').onclick=()=>oExit();return;
+  }
+  sb=sb||supabase.createClient(SB_URL,SB_KEY);
+  if(!prof){aAuth('Online için giriş yap');return}
+  myName=prof.username;
+  on('<p>Oyuncu: <b>'+esc(myName)+'</b></p>'+btn('oc','Oda kur')+'<p>Ya da oda kodunu gir</p><input id="cd" maxlength="4" style="'+SEL+';text-transform:uppercase">'+btn('oj','Odaya katıl')+btn('ob','Ana menü'));
+  $('ob').onclick=()=>oExit();
+  $('oc').onclick=oSetup;
+  $('oj').onclick=()=>{const c=$('cd').value.trim().toUpperCase();if(c.length<4)return;oJoin(c,false)};
+}
+
+function oSetup(){
+  on('<p>Kişi</p><select id="s1" style="'+SEL+'"><option value="2">1v1 (2 kişi)</option><option value="50">Grup</option></select><p>Mod</p><select id="s2" style="'+SEL+'"><option value="c15">Puan yarışı, 15 kelime</option><option value="c20">Puan yarışı, 20 kelime</option><option value="s180">Hayatta kalma, 3 dakika</option><option value="s300">Hayatta kalma, 5 dakika</option></select><p>Seviye</p><select id="s3" style="'+SEL+'"><option value="-1">Karışık (B1 ile B2+)</option>'+LBL.map((l,i)=>'<option value="'+i+'">'+l+'</option>').join('')+'</select>'+btn('ok2','Odayı kur')+btn('ob','Geri'));
+  $('ob').onclick=oHome;
+  $('ok2').onclick=()=>{
+    const m=$('s2').value;
+    cfg={max:+$('s1').value,m:m[0],n:m[0]==='c'?+m.slice(1):0,dur:m[0]==='s'?+m.slice(1):0,l:+$('s3').value};
+    oJoin(Math.random().toString(36).slice(2,6).toUpperCase(),true);
+  };
+}
+
+function oJoin(code,h){
+  isHost=h;started=false;room=code;
+  ost={p:0,w:0,a:1,fin:false,end:0,n:0,m:'c'};
+  ch=sb.channel('ka-'+code,{config:{broadcast:{self:true},presence:{key:myId}}});
+  ch.on('presence',{event:'sync'},oSync);
+  ch.on('broadcast',{event:'start'},e=>oBegin(e.payload));
+  ch.subscribe(s=>{
+    if(s==='SUBSCRIBED'){ch.track(mine());oLobby()}
+    else if(s==='CHANNEL_ERROR'||s==='TIMED_OUT')oExit('Bağlantı kurulamadı. Supabase adresini ve anahtarını kontrol et.');
+  });
+}
+
+function oSync(){
+  if(!ch)return;
+  const L=plist().sort((a,b)=>a.t-b.t),H=L.find(x=>x.h);
+  if(H&&H.c)cfg=H.c;
+  if(!started){
+    if(cfg&&!isHost&&L.findIndex(x=>x.k===myId)>=cfg.max){oExit('Oda dolu.');return}
+    oLobby(L);
+  }else oLive(L);
+}
+
+function oLobby(L){
+  L=L||plist();
+  const c=cfg,info=c?(c.max===2?'1v1':'Grup')+', '+(c.m==='c'?'Puan yarışı, '+c.n+' kelime':'Hayatta kalma, '+(c.dur/60)+' dakika')+', '+(c.l<0?'Karışık':LBL[c.l]):'Oda bilgisi bekleniyor';
+  on('<p>Oda kodu</p><h1 style="letter-spacing:6px;margin:0 0 6px">'+esc(room)+'</h1><p>'+info+'</p>'+L.map(x=>'<div class="pl"><span>'+esc(x.n)+(x.h?' (kurucu)':'')+'</span></div>').join('')+(isHost?btn('go','Başlat ('+L.length+' kişi)'):'<p>Kurucunun başlatması bekleniyor.</p>')+btn('ob','Çık'));
+  $('ob').onclick=()=>oExit();
+  if(isHost)$('go').onclick=()=>{
+    if(plist().length<2){alert('En az 2 kişi gerekli.');return}
+    ch.send({type:'broadcast',event:'start',payload:{seed:Math.floor(Math.random()*1e9),c:cfg}});
+  };
+}
+
+function oBegin(pl){
+  if(started||!pl||!pl.c)return;
+  started=true;cfg=pl.c;
+  ost={p:0,w:0,a:1,fin:false,end:0,n:cfg.n,m:cfg.m};
+  seq=mkSeq(pl.seed,cfg.l);si=0;mode='online';
+  $('live').hidden=false;
+  if(cfg.m==='s'){ost.end=Date.now()+cfg.dur*1000;clearInterval(tmr);tmr=setInterval(oTick,500)}
+  ch.track(mine());
+  next();
+}
+
+function oTick(){
+  if(ost.fin){clearInterval(tmr);return}
+  if(Date.now()>=ost.end){clearInterval(tmr);ost.fin=true;over=true;ch.track(mine());oResults();return}
+  oHud();
+}
+function oHud(){
+  if(ost.m==='s'){
+    const r=Math.max(0,Math.ceil((ost.end-Date.now())/1000));
+    $('badge').textContent='Doğru '+ost.w+'  '+Math.floor(r/60)+':'+String(r%60).padStart(2,'0');
+  }else $('badge').textContent='Kelime '+(si+1)+'/'+ost.n;
+}
+function oWin(p){
+  ost.p+=p;ost.w++;
+  if(ost.m==='c'&&si+1>=ost.n)ost.fin=true;
+  ch.track(mine());
+  return ost.fin?'<br>Son kelime!':'';
+}
+function oLose(){
+  if(ost.m==='s'){ost.a=0;ost.fin=true}
+  else if(si+1>=ost.n)ost.fin=true;
+  ch.track(mine());
+  return ost.m==='s'?'<br><b>Elendin!</b>':'';
+}
+function oNext(){
+  if(ost.fin){oResults();return}
+  si++;next();
+}
+
+function oLive(L){
+  L=rank(L||plist());
+  $('live').innerHTML=L.slice(0,4).map((x,i)=>'<span>'+(i+1)+'. '+esc(x.n)+' '+(cfg.m==='s'?x.w+' kelime':x.p+'p')+(x.a?'':' (elendi)')+'</span>').join('');
+  if(!$('online').hidden)oResults();
+}
+function oResults(){
+  clearInterval(tmr);
+  $('game').hidden=true;$('online').hidden=false;
+  const L=rank(plist()),left=L.filter(x=>!x.d).length;
+  on('<p>'+(left?'Bitirmeyen oyuncu: '+left:'Sonuçlar')+'</p>'+L.map((x,i)=>'<div class="pl"><span>'+(i+1)+'. '+esc(x.n)+(x.k===myId?' (sen)':'')+(x.a?'':' (elendi)')+'</span><b>'+(cfg.m==='s'?x.w+' kelime, '+x.p+' puan':x.p+' puan')+'</b></div>').join('')+btn('ob','Ana menü'));
+  $('ob').onclick=()=>oExit();
+}
+
+function oExit(msg){
+  clearInterval(tmr);
+  if(ch&&sb)sb.removeChannel(ch);
+  ch=null;started=false;mode='practice';
+  $('live').hidden=true;$('game').hidden=true;$('online').hidden=true;$('home').hidden=false;
+  $('score').textContent=score+' puan';
+  if(msg)alert(msg);
+}
+$('mOnline').onclick=oHome;
+
+// Gerçek e-posta değil: sadece Supabase giriş sistemi e-posta biçimi istediği için kullanıcı adından üretilir.
+const MD='@kelimeavi.app';
+let prof=null;
+if(window.supabase&&SB_URL.indexOf('PASTE')!==0){
+  sb=supabase.createClient(SB_URL,SB_KEY);
+  $('online').hidden=false;on('<p>Yükleniyor...</p>');
+  sb.auth.getSession().then(async r=>{
+    if(r.data&&r.data.session)await loadProf();
+    if(prof)oExit();else aAuth();
+  }).catch(()=>aAuth());
+}else $('home').hidden=false;
+function av(a,s){
+  return /^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(a||'')
+    ?'<img src="'+a+'" width="'+s+'" height="'+s+'" alt="" style="border-radius:50%;object-fit:cover">'
+    :'<div style="width:'+s+'px;height:'+s+'px;border-radius:50%;background:var(--key);display:inline-grid;place-items:center;font-weight:800">?</div>';
+}
+function rHome(){
+  const t=$('profT'),s=$('profS');if(!t)return;
+  t.textContent=prof?prof.username:'Profil';
+  s.textContent=prof?'Rekor: '+prof.best_score:'Giriş yap veya kayıt ol';
+}
+async function loadProf(){
+  const u=await sb.auth.getUser();
+  if(!u.data||!u.data.user){prof=null;rHome();return}
+  const r=await sb.from('profiles').select('*').eq('id',u.data.user.id).single();
+  prof=r.data||null;rHome();
+}
+function panel(h){$('home').hidden=true;$('online').hidden=false;on(h)}
+function noSb(){panel('<p>Bu özellik için Supabase ayarı gerekli.</p>'+btn('ob','Ana menü'));$('ob').onclick=()=>oExit()}
+
+function aAuth(msg){
+  if(!sb){noSb();return}
+  panel((msg?'<p><b>'+esc(msg)+'</b></p>':'')+'<p>Kullanıcı adı (3-16 karakter: a-z, 0-9, _)</p><input id="au" maxlength="16" autocapitalize="none" autocomplete="username" style="'+SEL+'"><p>Şifre (en az 8 karakter)</p><input id="ap" type="password" autocomplete="current-password" style="'+SEL+'"><p id="ae" style="color:var(--r)"></p>'+btn('al','Giriş yap')+btn('as','Kayıt ol')+'<p>Mail ya da telefon istenmez. Şifreni unutursan kurtarma yolu yoktur.</p>'+(prof?btn('ob','Ana menü'):''));
+  if(prof)$('ob').onclick=()=>oExit();
+  $('al').onclick=()=>aGo(false);
+  $('as').onclick=()=>aGo(true);
+}
+async function aGo(reg){
+  const u=$('au').value.trim().toLowerCase(),p=$('ap').value,err=t=>{$('ae').textContent=t};
+  if(!/^[a-z0-9_]{3,16}$/.test(u))return err('Kullanıcı adı 3-16 karakter olmalı: a-z, 0-9 ve _.');
+  if(p.length<8)return err('Şifre en az 8 karakter olmalı.');
+  err('Bekle...');
+  const em=u+MD;
+  const r=reg?await sb.auth.signUp({email:em,password:p,options:{data:{username:u}}}):await sb.auth.signInWithPassword({email:em,password:p});
+  if(r.error)return err(reg?(/registered|exists/i.test(r.error.message)?'Bu kullanıcı adı alınmış.':'Kayıt yapılamadı: '+r.error.message):'Kullanıcı adı ya da şifre yanlış.');
+  if(!r.data.session)return err('Hesap açıldı ama oturum başlamadı. Supabase ayarlarında Confirm email kapalı olmalı.');
+  await loadProf();
+  if(!prof)return err('Profil oluşturulamadı. SQL kurulumunu kontrol et.');
+  oExit();
+}
+
+function aProfile(){
+  if(!sb){noSb();return}
+  if(!prof){aAuth();return}
+  panel('<div style="text-align:center">'+av(prof.avatar,96)+'<h2 style="margin:8px 0 10px">'+esc(prof.username)+'</h2></div><div class="pl"><span>Rekor (Seri Modu)</span><b>'+prof.best_score+'</b></div><div class="pl"><span>En uzun seri</span><b>'+prof.best_streak+' kelime</b></div><input id="pf" type="file" accept="image/*" hidden>'+btn('pp','Profil fotoğrafı seç')+btn('lo','Çıkış yap')+btn('ob','Ana menü'));
+  $('ob').onclick=()=>oExit();
+  $('pp').onclick=()=>$('pf').click();
+  $('pf').onchange=aPhoto;
+  $('lo').onclick=async()=>{await sb.auth.signOut();prof=null;rHome();aAuth()};
+}
+function aPhoto(e){
+  const f=e.target.files[0];if(!f)return;
+  const im=new Image,u=URL.createObjectURL(f);
+  im.onload=async()=>{
+    const c=document.createElement('canvas');c.width=c.height=128;
+    const m=Math.min(im.width,im.height);
+    c.getContext('2d').drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,128,128);
+    URL.revokeObjectURL(u);
+    const d=c.toDataURL('image/jpeg',.7);
+    const r=await sb.from('profiles').update({avatar:d}).eq('id',prof.id);
+    if(r.error){alert('Fotoğraf kaydedilemedi.');return}
+    prof.avatar=d;aProfile();
+  };
+  im.onerror=()=>alert('Görsel açılamadı.');
+  im.src=u;
+}
+
+async function aBoard(){
+  if(!sb){noSb();return}
+  panel('<p>Yükleniyor...</p>');
+  const r=await sb.from('profiles').select('username,avatar,best_score,best_streak').gt('best_score',0).order('best_score',{ascending:false}).limit(20);
+  if(r.error){panel('<p>Skor tablosu yüklenemedi.</p>'+btn('ob','Ana menü'));$('ob').onclick=()=>oExit();return}
+  const d=r.data||[];
+  panel('<p>Seri Modu rekorları</p>'+(d.length?d.map((x,i)=>'<div class="pl"><span style="display:flex;align-items:center;gap:8px">'+(i+1)+'. '+av(x.avatar,28)+esc(x.username)+(prof&&x.username===prof.username?' (sen)':'')+'</span><b>'+x.best_score+'</b></div>').join(''):'<p>Henüz kayıtlı skor yok.</p>')+btn('ob','Ana menü'));
+  $('ob').onclick=()=>oExit();
+}
+async function submitRun(){
+  if(!sb||!prof||!run.score)return;
+  const s=Math.min(run.score,20000),st=Math.min(run.max||0,500);
+  const r=await sb.rpc('submit_score',{s,st});
+  if(!r.error){prof.best_score=Math.max(prof.best_score,s);prof.best_streak=Math.max(prof.best_streak,st);rHome()}
+}
+$('mProf').onclick=()=>prof?aProfile():aAuth();
+$('mLb').onclick=aBoard;
+
+
+</script>
+</body>
+</html>
