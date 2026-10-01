@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kelime Avı</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="theme-color" content="#0f1622">
@@ -13,109 +16,163 @@
 <script>try{var t=localStorage.getItem("ka_theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{--bg:#eef2f7;--panel:#fff;--fg:#16202e;--dim:#5b6b80;--line:#c9d3e0;--key:#dbe3ee;--g:#2fae5f;--o:#f08a24;--r:#d64550;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1622;--panel:#182234;--fg:#e8eef7;--dim:#8fa1b8;--line:#2b3a52;--key:#2a3a54}}
-:root[data-theme="dark"]{--bg:#0f1622;--panel:#182234;--fg:#e8eef7;--dim:#8fa1b8;--line:#2b3a52;--key:#2a3a54}
-:root[data-theme="light"]{--bg:#eef2f7;--panel:#fff;--fg:#16202e;--dim:#5b6b80;--line:#c9d3e0;--key:#dbe3ee}
-:root[data-theme="sakura"]{--bg:#fdf0f4;--panel:#fff8fa;--fg:#4a2b36;--dim:#9a6b7b;--line:#f0cfda;--key:#f6d9e2;--r:#d9486a}
-:root[data-theme="deniz"]{--bg:#0b2a3a;--panel:#12384c;--fg:#e3f4fb;--dim:#85b3c8;--line:#1f5570;--key:#1d4a62}
-:root[data-theme="orman"]{--bg:#eaf3e6;--panel:#f6fbf3;--fg:#1f3a26;--dim:#6a8a6f;--line:#cfe3c8;--key:#dcebd6}
-:root[data-theme="gunbatimi"]{--bg:#231633;--panel:#321f47;--fg:#ffe9d6;--dim:#c9a2b8;--line:#4d3366;--key:#46305f}
-#home{overflow-y:auto}
-.row.sm{gap:3px}
-.row.sm .tile{width:var(--s);height:var(--s);font-size:calc(var(--s)*.55);border-radius:5px;border-width:1px}
-.cap{font-size:12px;color:var(--dim)}
-.sg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.sc{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:10px}
-.sc b{display:block;font-size:20px}
-.sc span{font-size:12px;color:var(--dim)}
-.bg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.bd{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:8px 4px;text-align:center;font-size:11px}
-.bd i{display:block;font-style:normal;font-size:24px}
-.bd.off{opacity:.35;filter:grayscale(1)}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(24px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:20px;font-size:14px;z-index:10;max-width:90%;text-align:center}
-.sbtn{padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);font-size:13px;cursor:pointer}
-.vs{display:flex;align-items:center;justify-content:center;gap:10px;margin:8px 0 16px}
-.vs-s{flex:1;max-width:200px;border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:14px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px}
-.vs-s b{font-size:16px;word-break:break-all}
-.vs-s span,.vs-l{font-size:12px;color:var(--dim)}
-.vs-x{font-weight:900;font-size:22px;color:var(--o)}
-.vs-w{width:72px;height:72px;border-radius:50%;border:2px dashed var(--line);display:grid;place-items:center;font-size:28px;color:var(--dim)}
-@media (min-width:700px){#app{max-width:640px}.k{max-width:56px;height:54px;font-size:18px}.lvl{padding:18px}h1{font-size:26px}}
-@media (min-width:1100px){#app{max-width:720px}}
-@media (max-height:560px){#app{padding:6px 10px;gap:6px}#def{padding:8px 10px;font-size:15px}.k{height:38px}.col{width:44px;height:44px}}
+:root{--bg:#f5f6f8;--panel:#fff;--fg:#14171f;--dim:#6b7280;--line:#e5e7eb;--key:#e9ebf0;--ac:#4f46e5;--acf:#fff;--sh:0 1px 2px rgba(16,24,40,.05),0 8px 24px rgba(16,24,40,.06);--g:#22a35a;--o:#f08a24;--r:#e5484d;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme]){--bg:#0c0f14;--panel:#141922;--fg:#eef1f6;--dim:#8b95a7;--line:#222a37;--key:#222b3a;--ac:#8ea2ff;--acf:#0b0f1a;--sh:0 8px 24px rgba(0,0,0,.35)}}
+:root[data-theme="light"]{--bg:#f5f6f8;--panel:#fff;--fg:#14171f;--dim:#6b7280;--line:#e5e7eb;--key:#e9ebf0;--ac:#4f46e5;--acf:#fff}
+:root[data-theme="dark"]{--bg:#0c0f14;--panel:#141922;--fg:#eef1f6;--dim:#8b95a7;--line:#222a37;--key:#222b3a;--ac:#8ea2ff;--acf:#0b0f1a;--sh:0 8px 24px rgba(0,0,0,.35)}
+:root[data-theme="sakura"]{--bg:#fff4f7;--panel:#fff;--fg:#4a2b36;--dim:#a07585;--line:#f5d5df;--key:#fbe3ea;--ac:#e0658a;--acf:#fff}
+:root[data-theme="deniz"]{--bg:#071e2b;--panel:#0d2f40;--fg:#e6f6fb;--dim:#7fb0c4;--line:#164a62;--key:#17415a;--ac:#3ec6c0;--acf:#06222b;--sh:0 8px 24px rgba(0,0,0,.35)}
+:root[data-theme="orman"]{--bg:#f1f7ee;--panel:#fcfffa;--fg:#1d3523;--dim:#6b8c72;--line:#d9e8d2;--key:#e3f0dd;--ac:#3f9b62;--acf:#fff}
+:root[data-theme="gunbatimi"]{--bg:#1b1128;--panel:#2a1b3d;--fg:#fff0e3;--dim:#c8a5bd;--line:#44305c;--key:#3c2a55;--ac:#ff9b6b;--acf:#2a1220;--sh:0 8px 24px rgba(0,0,0,.35)}
+:root[data-theme="lavanta"]{--bg:#f6f3ff;--panel:#fff;--fg:#2a2146;--dim:#7a6fa3;--line:#e3dcf7;--key:#ece6fb;--ac:#7c5cf0;--acf:#fff}
+:root[data-theme="kahve"]{--bg:#1c1511;--panel:#2a1f19;--fg:#f4e8dc;--dim:#b49a86;--line:#42332a;--key:#3a2c23;--ac:#d9a066;--acf:#24170d;--sh:0 8px 24px rgba(0,0,0,.35)}
+:root[data-theme="nane"]{--bg:#eefaf5;--panel:#fff;--fg:#123b32;--dim:#5f9285;--line:#cfeee3;--key:#ddf4ec;--ac:#12b886;--acf:#06281f}
+:root[data-theme="amoled"]{--bg:#000;--panel:#0b0b0d;--fg:#f2f2f2;--dim:#8a8a90;--line:#1e1e22;--key:#1c1c20;--ac:#fff;--acf:#000;--sh:none}
+*{box-sizing:border-box}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 html,body{height:100%;margin:0}
-body{background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
-#app{height:100%;max-width:520px;margin:0 auto;padding:12px 14px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px}
-header{display:flex;justify-content:space-between;align-items:center}
-h1{font-size:22px;margin:0}
-#score{font-weight:700;font-size:16px}
+body{background:var(--bg);color:var(--fg);font-family:'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(900px 380px at 50% -140px,color-mix(in srgb,var(--ac) 16%,transparent),transparent)}
 button{font-family:inherit;color:inherit;cursor:pointer}
-.lvl{display:flex;justify-content:space-between;align-items:center;width:100%;padding:16px;margin-bottom:10px;border:1px solid var(--line);border-radius:14px;background:var(--panel);font-size:16px;text-align:left}
-.lvl b{font-size:22px}
-.lvl small{color:var(--dim);display:block;margin-top:2px}
+input,select{font-family:inherit}
+#app{position:relative;z-index:1;height:100%;max-width:560px;margin:0 auto;padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+header{display:flex;justify-content:space-between;align-items:center}
+.brand{display:flex;align-items:center;gap:10px}
+h1{font-size:18px;margin:0;font-weight:800;letter-spacing:-.3px}
+.mark{width:34px;height:34px;border-radius:10px;background:var(--fg);display:grid;grid-template-columns:repeat(3,7px);gap:3px;place-content:center}
+.mark i{width:7px;height:7px;border-radius:2px}
+#logo{width:34px;height:34px;border-radius:10px;object-fit:contain}
+#score{font-weight:700;font-size:13px;padding:6px 12px;border-radius:999px;background:var(--panel);border:1px solid var(--line)}
+#home,#online,#menu{flex:1;min-height:0;overflow-y:auto;animation:in .25s ease both}
+#home{display:flex;flex-direction:column;gap:12px}
+@keyframes in{from{opacity:0;transform:translateY(6px)}}
+.greet h2{margin:6px 0 2px;font-size:28px;font-weight:800;letter-spacing:-.6px}
+.greet p{margin:0;color:var(--dim);font-size:14px}
+.cd{display:flex;flex-direction:column;gap:2px;text-align:left;padding:16px;border-radius:20px;border:1px solid var(--line);background:var(--panel);box-shadow:var(--sh);transition:transform .15s,border-color .15s;width:100%}
+.cd:hover{border-color:var(--ac)}
+.cd:active{transform:scale(.98)}
+.cd b{font-size:16px;font-weight:700}
+.cd small{color:var(--dim);font-size:12.5px;line-height:1.35}
+.cd:disabled{opacity:.5}
+.ic{width:38px;height:38px;border-radius:12px;background:var(--key);display:grid;place-items:center;font-size:19px;margin-bottom:10px}
+.feat{background:var(--ac);color:var(--acf);border-color:transparent;padding:20px}
+.feat small{color:inherit;opacity:.85;font-size:13.5px}
+.feat b{font-size:20px;letter-spacing:-.3px}
+.feat .tag{font-size:12px;font-weight:700;opacity:.8;margin-bottom:6px}
+.feat .go{align-self:flex-start;margin-top:14px;padding:8px 18px;border-radius:999px;background:var(--acf);color:var(--ac);font-weight:800;font-size:13px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.dock{display:flex;gap:12px}
+.dock .cd{flex-direction:row;align-items:center;gap:12px;padding:12px 16px}
+.dock .cd:first-child{flex:1}
+.dock .cd:last-child{width:auto}
+.avs{display:inline-flex}
+.lvl{display:flex;justify-content:space-between;align-items:center;width:100%;padding:14px 16px;margin-bottom:8px;border:1px solid var(--line);border-radius:16px;background:var(--panel);font-size:15px;font-weight:600;text-align:left;transition:transform .15s,border-color .15s}
+.lvl:hover{border-color:var(--ac)}
 .lvl:active{transform:scale(.98)}
-#menu{overflow-y:auto}
-#menu p{color:var(--dim);margin:0 0 14px;line-height:1.4}
-#game{flex:1;display:flex;flex-direction:column;gap:10px;min-height:0}
+.lvl b{font-size:20px}
+.lvl small{color:var(--dim);display:block;margin-top:2px;font-weight:500}
+.lvl:disabled{opacity:.5}
+#online p,#menu p{color:var(--dim);margin:0 0 10px;font-size:14px;line-height:1.45}
+.hero{text-align:center;padding:10px 0 18px}
+.hero-logo{display:inline-grid;margin-bottom:10px}
+.hero h2{margin:0;font-size:26px;font-weight:800;letter-spacing:-.5px}
+#online .hero p{margin:4px 0 0}
+#game{flex:1;display:flex;flex-direction:column;gap:10px;min-height:0;animation:in .25s ease both}
 #top{display:flex;justify-content:space-between;align-items:center}
-#back{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:8px 12px;font-size:14px}
-#badge{font-weight:700}
-#def{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-family:Georgia,serif;font-size:17px;line-height:1.4}
-#def small{display:block;margin-top:6px;font-family:system-ui,sans-serif;font-size:13px;color:var(--dim)}
+#back{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600}
+#badge{font-weight:700;font-size:13px;color:var(--dim)}
+#live{font-size:12px;color:var(--dim);display:flex;gap:10px;flex-wrap:wrap}
 #defrow{display:flex;gap:8px;align-items:stretch}
 #defrow #def{flex:1}
-#hintbtn{width:48px;border-radius:12px;border:1px solid var(--o);background:transparent;color:var(--o);font-size:22px;font-weight:800;cursor:pointer}
-#hintbtn:active{transform:scale(.92)}
-#hinttxt{background:var(--panel);border:1px dashed var(--o);border-radius:12px;padding:8px 12px;font-size:15px}
-#passbtn{padding:0 12px;border-radius:12px;border:1px solid var(--g);background:transparent;color:var(--g);font-weight:800;font-size:14px;cursor:pointer}
-#home p{color:var(--dim);margin:0 0 14px;line-height:1.4}
-.lvl:disabled{opacity:.5;cursor:default}
-#live{font-size:13px;color:var(--dim);display:flex;gap:10px;flex-wrap:wrap}
-#online{flex:1;overflow-y:auto;min-height:0}
-#online p{color:var(--dim);margin:0 0 8px}
-.pl{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);margin-bottom:6px}
-#gridwrap{flex:1;overflow-y:auto;min-height:0;display:flex;flex-direction:column;align-items:center;gap:5px}
-.row{display:flex;gap:5px}
-.tile{width:var(--t);height:var(--t);border:2px solid var(--line);border-radius:8px;display:grid;place-items:center;font-weight:800;font-size:calc(var(--t)*.5);background:var(--panel)}
-.tile.f{border-color:var(--dim)}
+#def{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px 16px;font-size:16px;line-height:1.45;font-weight:500;box-shadow:var(--sh)}
+#def small{display:block;margin-top:6px;font-size:12px;color:var(--dim)}
+#hintbtn{width:48px;border-radius:16px;border:1px solid var(--o);background:transparent;color:var(--o);font-size:22px;font-weight:800}
+#passbtn{padding:0 14px;border-radius:16px;border:1px solid var(--g);background:transparent;color:var(--g);font-weight:800;font-size:14px}
+#hinttxt{background:var(--panel);border:1px dashed var(--o);border-radius:14px;padding:10px 14px;font-size:14px;line-height:1.45}
+#gridwrap{flex:1;overflow-y:auto;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px}
+.row{display:flex;gap:6px}
+.row.sm{gap:3px}
+.tile{width:var(--t);height:var(--t);border:2px solid var(--line);border-radius:12px;display:grid;place-items:center;font-weight:800;font-size:calc(var(--t)*.5);background:var(--panel);transition:background .2s}
+.row.sm .tile{width:var(--s);height:var(--s);font-size:calc(var(--s)*.55);border-radius:6px;border-width:1px}
+.tile.f{border-color:var(--fg)}
 .tile.g,.tile.o,.tile.r{color:#fff;border-color:transparent}
 .tile.g{background:var(--g)}.tile.o{background:var(--o)}.tile.r{background:var(--r)}
-#res{text-align:center;min-height:22px;font-size:16px;line-height:1.4}
-#res b{font-size:19px}
-#res .row2{display:flex;gap:10px;margin-top:8px}
-#res button{flex:1;height:48px;border-radius:12px;border:1px solid var(--g);background:transparent;font-size:16px}
-#res button.m{background:var(--g);color:#fff;font-weight:700}
+.cap{font-size:12px;color:var(--dim);font-weight:600}
+#res{text-align:center;min-height:22px;font-size:15px;line-height:1.45}
+#res b{font-size:18px}
+#res .row2{display:flex;gap:10px;margin-top:10px}
+#res button{flex:1;height:50px;border-radius:14px;border:1px solid var(--line);background:var(--panel);font-size:15px;font-weight:700}
+#res button.m{background:var(--fg);color:var(--bg);border-color:var(--fg)}
 #kb{display:flex;flex-direction:column;gap:6px}
 .kr{display:flex;justify-content:center;gap:5px}
-.k{flex:1;max-width:44px;height:48px;border:0;border-radius:8px;background:var(--key);font-size:16px;font-weight:700}
-.k.w{max-width:64px;font-size:13px}
+.k{flex:1;max-width:44px;height:50px;border:0;border-radius:10px;background:var(--key);font-size:15px;font-weight:700;box-shadow:0 2px 0 rgba(0,0,0,.08)}
+.k.w{max-width:68px;font-size:13px}
 .k.g{background:var(--g);color:#fff}.k.o{background:var(--o);color:#fff}
-.k.r{background:var(--r);color:#fff;opacity:.35}
-.k:active{transform:scale(.92)}
+.k.r{background:var(--r);color:#fff;opacity:.3}
+.k:active{transform:translateY(2px);box-shadow:none}
 .pop{animation:pop .25s}
-@keyframes pop{50%{transform:scale(1.12)}}
+@keyframes pop{50%{transform:scale(1.1)}}
+.pl{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--panel);margin-bottom:8px}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sc{border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:12px 14px}
+.sc b{display:block;font-size:22px;font-weight:800;letter-spacing:-.4px}
+.sc span{font-size:12px;color:var(--dim)}
+.sbtn{padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);font-size:13px;font-weight:600}
+.bg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.bd{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:10px 4px;text-align:center;font-size:11px}
+.bd i{display:block;font-style:normal;font-size:24px}
+.bi{display:flex;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:16px;background:var(--panel);margin-bottom:8px}
+.bi.off{opacity:.6}
+.bi .bi-i{font-size:28px;width:40px;text-align:center}
+.bi.off .bi-i{filter:grayscale(1)}
+.bi-t{flex:1}
+.bi-t b{display:block;font-size:14px}
+.bi-t small{display:block;color:var(--dim);font-size:12.5px;line-height:1.35;margin-top:2px}
+.bi-b{height:5px;border-radius:3px;background:var(--key);margin-top:8px}
+.bi-b i{display:block;height:5px;border-radius:3px;background:var(--ac)}
+.bi-s{font-size:11px;font-weight:700;padding:4px 9px;border-radius:999px;background:var(--key)}
+.bi.on .bi-s{background:var(--g);color:#fff}
+.th2{display:flex;justify-content:space-between;align-items:center;width:100%;padding:14px 16px;margin-bottom:8px;border-radius:16px;border:2px solid transparent;font-size:15px;font-weight:700}
+.th2 i{display:inline-block;width:14px;height:14px;border-radius:50%;margin-left:4px}
+.th2.cur{border-color:currentColor}
+.vs{display:flex;align-items:center;justify-content:center;gap:10px;margin:8px 0 16px}
+.vs-s{flex:1;max-width:200px;border:1px solid var(--line);border-radius:20px;background:var(--panel);padding:16px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:var(--sh)}
+.vs-s b{font-size:16px;word-break:break-all}
+.vs-s span,.vs-l{font-size:12px;color:var(--dim)}
+.vs-x{font-weight:800;font-size:22px;color:var(--ac)}
+.vs-w{width:72px;height:72px;border-radius:50%;border:2px dashed var(--line);display:grid;place-items:center;font-size:28px;color:var(--dim)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(24px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 18px;border-radius:999px;font-size:14px;font-weight:600;z-index:10;max-width:90%;text-align:center}
 [hidden]{display:none!important}
-@media (prefers-reduced-motion:reduce){.pop{animation:none}}
+@media (min-width:700px){#app{max-width:680px}.k{max-width:56px;height:54px;font-size:17px}h1{font-size:20px}.greet h2{font-size:32px}}
+@media (min-width:1100px){#app{max-width:760px}}
+@media (max-height:560px){#app{padding:6px 10px;gap:6px}#def{padding:8px 12px;font-size:14px}.k{height:38px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.rules{display:flex;gap:8px;flex-wrap:wrap}
+.rules span{font-size:12px;padding:5px 11px;border-radius:999px;background:var(--panel);border:1px solid var(--line);color:var(--dim);font-weight:600}
+.rules span::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--c);margin-right:6px}
 </style>
 </head>
 <body>
 <div id="app">
-  <header><h1>Kelime Avı</h1><span id="score">0 puan</span></header>
+  <header><div class="brand"><span id="mark" class="mark"><i style="background:var(--g)"></i><i style="background:var(--g)"></i><i style="background:var(--o)"></i><i style="background:var(--r)"></i><i style="background:var(--g)"></i><i style="background:var(--g)"></i></span><img id="logo" alt="" hidden><h1>Kelime Avı</h1></div><span id="score">0 puan</span></header>
   <div id="home" hidden>
-    <p>Tanımı oku, İngilizce kelimeyi bul. Yeşil: yeri doğru. Turuncu: harf var, yeri yanlış. Kırmızı: harf kelimede yok.</p>
-    <button class="lvl" id="mDaily"><span><b>Günün Kelimesi</b><small>Herkese aynı kelime, sadece 3 hak.</small></span><span>Oyna</span></button>
-    <button class="lvl" id="mStreak"><span><b>Seri Modu</b><small>Rastgele kelimeler, skor arttıkça zorlaşır. 3 canın var.</small></span><span>Başla</span></button>
-    <button class="lvl" id="mPractice"><span><b>Alıştırma</b><small>Seviyeni seç, rahatça çalış.</small></span><span>Başla</span></button>
-    <button class="lvl" id="mOnline"><span><b>Online</b><small>1v1 veya grup, oda koduyla.</small></span><span>Gir</span></button>
-    <button class="lvl" id="mProf"><span><b id="profT">Profil</b><small id="profS">Giriş yap veya kayıt ol</small></span><span>Aç</span></button>
-    <button class="lvl" id="mLb"><span><b>Skor tablosu</b><small>Seri Modu rekorları.</small></span><span>Aç</span></button>
-    <button class="lvl" id="mSet"><span><b>Ayarlar</b><small>Tema, ses, titreşim, ana ekrana ekle.</small></span><span>Aç</span></button>
+    <div class="greet"><h2 id="hi">Hoş geldin</h2><p>Bugün hangi kelimeyi avlıyoruz?</p></div>
+    <div class="rules"><span style="--c:var(--g)">Yeri doğru</span><span style="--c:var(--o)">Yeri yanlış</span><span style="--c:var(--r)">Kelimede yok</span></div>
+    <button class="cd feat" id="mDaily"><span class="tag">Günün kelimesi</span><b>Herkes aynı kelimeyi çözüyor</b><small>Sadece 3 hak. Her gün yeni bir kelime.</small><span class="go">Oyna</span></button>
+    <div class="grid">
+      <button class="cd" id="mStreak"><span class="ic">⚡</span><b>Seri Modu</b><small>3 can, giderek zorlaşan kelimeler</small></button>
+      <button class="cd" id="mPractice"><span class="ic">📚</span><b>Alıştırma</b><small>Seviyeni seç, rahat çalış</small></button>
+      <button class="cd" id="mOnline"><span class="ic">🌐</span><b>Online</b><small>1v1 ya da grup, oda koduyla</small></button>
+      <button class="cd" id="mLb"><span class="ic">🏆</span><b>Skor tablosu</b><small>Haftalık ve tüm zamanlar</small></button>
+    </div>
+    <div class="dock">
+      <button class="cd" id="mProf"><span class="avs" id="hav"></span><span><b id="profT">Profil</b><br><small id="profS">Giriş yap veya kayıt ol</small></span></button>
+      <button class="cd" id="mSet"><span class="ic" style="margin:0">⚙️</span></button>
+    </div>
   </div>
   <div id="online" hidden></div>
   <div id="menu" hidden>
-    <p>Tanımı oku, İngilizce kelimeyi bul. Yeşil: yeri doğru. Turuncu: harf var ama yeri yanlış. Kırmızı: harf kelimede yok ve klavyeden elenir. 3. denemeden sonra ? butonuyla Türkçe ipucu alabilirsin, ama 10 puan düşer.</p>
+    <p>Tanımı oku, İngilizce kelimeyi bul. Yeşil: yeri doğru. Turuncu: harf var ama yeri yanlış. Kırmızı: harf kelimede yok ve klavyeden elenir. 3. denemeden sonra ? butonuyla örnek cümle ipucu alabilirsin, ama 10 puan düşer.</p>
     <div id="lvls"></div>
     <button class="lvl" id="toHome" style="justify-content:center">Ana menü</button>
   </div>
@@ -465,7 +522,7 @@ function noSb(){panel('<p>Bu özellik için Supabase ayarı gerekli.</p>'+btn('o
 
 function aAuth(msg){
   if(!sb){noSb();return}
-  panel((msg?'<p><b>'+esc(msg)+'</b></p>':'')+'<p>Kullanıcı adı (3-16 karakter: a-z, 0-9, _)</p><input id="au" maxlength="16" autocapitalize="none" autocomplete="username" style="'+SEL+'"><p>Şifre (en az 8 karakter)</p><input id="ap" type="password" autocomplete="current-password" style="'+SEL+'"><p id="ae" style="color:var(--r)"></p>'+btn('al','Giriş yap')+btn('as','Kayıt ol')+'<p>Mail ya da telefon istenmez. Şifreni unutursan kurtarma yolu yoktur.</p>'+(prof?btn('ob','Ana menü'):''));
+  panel(heroHTML()+(msg?'<p><b>'+esc(msg)+'</b></p>':'')+'<p>Kullanıcı adı (3-16 karakter: a-z, 0-9, _)</p><input id="au" maxlength="16" autocapitalize="none" autocomplete="username" style="'+SEL+'"><p>Şifre (en az 8 karakter)</p><input id="ap" type="password" autocomplete="current-password" style="'+SEL+'"><p id="ae" style="color:var(--r)"></p>'+btn('al','Giriş yap')+btn('as','Kayıt ol')+'<p>Mail ya da telefon istenmez. Şifreni unutursan kurtarma yolu yoktur.</p>'+(prof?btn('ob','Ana menü'):''));
   if(prof)$('ob').onclick=()=>oExit();
   $('al').onclick=()=>aGo(false);
   $('as').onclick=()=>aGo(true);
@@ -742,7 +799,7 @@ function aProfile(){
   const P=prof,n=P.words_solved||0,t=n+(P.words_failed||0),nb=BD.filter(b=>b[2](P)).length;
   const ds=P.last_daily&&P.last_daily>=dStr(dayNum()-1)?P.daily_streak:0;
   const S=(a,b)=>'<div class="sc"><b>'+a+'</b><span>'+b+'</span></div>';
-  panel('<div style="text-align:center">'+av(P.avatar,96)+'<h2 style="margin:8px 0 2px">'+esc(P.username)+'</h2><p>'+titleOf(P)+', '+n+' kelime</p><div style="display:flex;gap:8px;justify-content:center;margin-bottom:14px"><button class="sbtn" id="bb">Rozetler ('+nb+')</button><button class="sbtn" id="tb2">Unvan ilerlemesi</button></div></div><div class="sg">'+S(P.best_score,'Seri rekoru')+S(P.best_streak,'En uzun seri')+S(t?Math.round(n/t*100)+'%':'-','Doğruluk')+S(n?(P.total_guesses/n).toFixed(1):'-','Ortalama tahmin')+S(P.first_try||0,'İlk denemede')+S(P.hints_used||0,'İpucu kullanımı')+S(P.total_points||0,'Toplam puan')+S(P.streak_runs||0,'Seri oyunu')+S((P.daily_wins||0)+'/'+(P.daily_played||0),'Günlük kazanılan')+S(ds+' (en iyi '+(P.best_daily_streak||0)+')','Günlük seri')+'</div><input id="pf" type="file" accept="image/*" hidden><div style="height:12px"></div>'+btn('pp','Profil fotoğrafı seç')+btn('lo','Çıkış yap')+btn('ob','Ana menü'));
+  panel('<div style="text-align:center">'+av(P.avatar,96)+'<h2 style="margin:8px 0 2px">'+esc(P.username)+'</h2><p>'+titleOf(P)+', '+n+' kelime</p><div style="display:flex;gap:8px;justify-content:center;margin-bottom:14px"><button class="sbtn" id="bb">Rozetler ('+nb+'/'+BD.length+')</button><button class="sbtn" id="tb2">Unvan ilerlemesi</button></div></div><div class="sg">'+S(P.best_score,'Seri rekoru')+S(P.best_streak,'En uzun seri')+S(t?Math.round(n/t*100)+'%':'-','Doğruluk')+S(n?(P.total_guesses/n).toFixed(1):'-','Ortalama tahmin')+S(P.first_try||0,'İlk denemede')+S(P.hints_used||0,'İpucu kullanımı')+S(P.total_points||0,'Toplam puan')+S(P.streak_runs||0,'Seri oyunu')+S((P.daily_wins||0)+'/'+(P.daily_played||0),'Günlük kazanılan')+S(ds+' (en iyi '+(P.best_daily_streak||0)+')','Günlük seri')+'</div><input id="pf" type="file" accept="image/*" hidden><div style="height:12px"></div>'+btn('pp','Profil fotoğrafı seç')+btn('lo','Çıkış yap')+btn('ob','Ana menü'));
   $('bb').onclick=aBadges;
   $('tb2').onclick=aTitles;
   $('ob').onclick=()=>oExit();
@@ -767,6 +824,60 @@ function aTitles(){
 
 
 
+
+
+let logoOK=false;
+function mark(s){
+  const k=Math.round(s*.2),g=Math.round(s*.09);
+  return '<span class="mark" style="width:'+s+'px;height:'+s+'px;border-radius:'+Math.round(s*.3)+'px;grid-template-columns:repeat(3,'+k+'px);gap:'+g+'px">'+['g','g','o','r','g','g'].map(c=>'<i style="width:'+k+'px;height:'+k+'px;background:var(--'+c+')"></i>').join('')+'</span>';
+}
+function logoHTML(s){return logoOK?'<img src="logo.png" width="'+s+'" height="'+s+'" alt="" style="border-radius:'+Math.round(s*.28)+'px;object-fit:contain">':mark(s)}
+function heroHTML(){return '<div class="hero"><div class="hero-logo">'+logoHTML(60)+'</div><h2>Kelime Avı</h2><p>İngilizce kelime oyunu</p></div>'}
+const LI=new Image();
+LI.onload=()=>{logoOK=true;$('logo').src='logo.png';$('logo').hidden=false;$('mark').hidden=true};
+LI.src='logo.png';
+
+function rHome(){
+  const t=$('profT');if(!t)return;
+  t.textContent=prof?prof.username:'Profil';
+  $('profS').textContent=prof?titleOf(prof)+', rekor '+prof.best_score:'Giriş yap veya kayıt ol';
+  $('hi').textContent=prof?'Merhaba, '+prof.username:'Hoş geldin';
+  $('hav').innerHTML=av(prof&&prof.avatar,40);
+}
+
+const TH2=[['light','Aydınlık','#f5f6f8','#14171f','#4f46e5'],['dark','Karanlık','#0c0f14','#eef1f6','#8ea2ff'],['amoled','Amoled','#000000','#f2f2f2','#ffffff'],['sakura','Sakura','#fff4f7','#4a2b36','#e0658a'],['lavanta','Lavanta','#f6f3ff','#2a2146','#7c5cf0'],['nane','Nane','#eefaf5','#123b32','#12b886'],['orman','Orman','#f1f7ee','#1d3523','#3f9b62'],['deniz','Deniz','#071e2b','#e6f6fb','#3ec6c0'],['gunbatimi','Gün batımı','#1b1128','#fff0e3','#ff9b6b'],['kahve','Kahve','#1c1511','#f4e8dc','#d9a066']];
+function aTheme(){
+  const cur=document.documentElement.dataset.theme||'';
+  panel('<p>Tema seç</p>'+TH2.map(x=>'<button class="th2'+(x[0]===cur?' cur':'')+'" data-t="'+x[0]+'" style="background:'+x[2]+';color:'+x[3]+'"><span>'+x[1]+'</span><span><i style="background:'+x[4]+'"></i><i style="background:'+x[3]+'"></i></span></button>').join('')+btn('ob','Geri'));
+  document.querySelectorAll('.th2').forEach(b=>b.onclick=()=>{setTheme(b.dataset.t);aTheme()});
+  $('ob').onclick=aSettings;
+}
+
+const BI={
+'İlk kelime':['Herhangi bir kelimeyi doğru bil.',p=>p.words_solved,1],
+'50 kelime':['Toplam 50 kelimeyi doğru çöz.',p=>p.words_solved,50],
+'250 kelime':['Toplam 250 kelimeyi doğru çöz.',p=>p.words_solved,250],
+'İlk denemede 10':['10 kelimeyi ilk tahminde bil.',p=>p.first_try,10],
+'İlk denemede 50':['50 kelimeyi ilk tahminde bil.',p=>p.first_try,50],
+'Seri 10':['Seri Modunda üst üste 10 kelime bil.',p=>p.best_streak,10],
+'Seri 25':['Seri Modunda üst üste 25 kelime bil.',p=>p.best_streak,25],
+'500 puan rekoru':['Seri Modunda tek oyunda 500 puana ulaş.',p=>p.best_score,500],
+'1500 puan rekoru':['Seri Modunda tek oyunda 1500 puana ulaş.',p=>p.best_score,1500],
+'Günlük 3 gün':['Günün kelimesini 3 gün üst üste bil.',p=>p.best_daily_streak,3],
+'Günlük 7 gün':['Günün kelimesini 7 gün üst üste bil.',p=>p.best_daily_streak,7],
+'Günlük 30 gün':['Günün kelimesini 30 gün üst üste bil.',p=>p.best_daily_streak,30],
+'10 günlük zafer':['Günün kelimesini toplam 10 kere bil.',p=>p.daily_wins,10],
+'Keskin nişancı':['En az 50 kelime oyna ve doğruluğunu yüzde 80 üstünde tut.',null,0],
+'Fotoğraflı profil':['Profiline bir fotoğraf ekle.',null,0]
+};
+function aBadges(){
+  const P=prof,list=BD.slice().sort((a,b)=>b[2](P)-a[2](P)),u=BD.filter(b=>b[2](P)).length;
+  panel('<p>'+u+'/'+BD.length+' rozet açık. Kilitli rozetlerin altında nasıl kazanacağın yazıyor.</p>'+list.map(b=>{
+    const on=b[2](P),i=BI[b[0]]||['',null,0],cur=i[1]?Math.min(i[1](P)||0,i[2]):0;
+    return '<div class="bi '+(on?'on':'off')+'"><span class="bi-i">'+b[1]+'</span><div class="bi-t"><b>'+b[0]+'</b><small>'+i[0]+'</small>'+(!on&&i[1]?'<div class="bi-b"><i style="width:'+Math.round(cur/i[2]*100)+'%"></i></div><small>'+cur+' / '+i[2]+'</small>':'')+'</div><span class="bi-s">'+(on?'Açık':'Kilitli')+'</span></div>';
+  }).join('')+btn('ob','Profil'));
+  $('ob').onclick=aProfile;
+}
 
 </script>
 </body>
