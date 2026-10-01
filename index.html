@@ -151,6 +151,38 @@ h1{font-size:18px;margin:0;font-weight:800;letter-spacing:-.3px}
 .rules{display:flex;gap:8px;flex-wrap:wrap}
 .rules span{font-size:12px;padding:5px 11px;border-radius:999px;background:var(--panel);border:1px solid var(--line);color:var(--dim);font-weight:600}
 .rules span::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--c);margin-right:6px}
+
+/* v2: büyük klavye, ekranı dolduran kutular, tablet ve yatay düzen */
+#gridwrap{justify-content:center;gap:var(--gp,6px)}
+.row{gap:var(--gp,6px)}
+.tile{border-radius:calc(var(--t)*.2)}
+.tile.cu{border-color:var(--ac)}
+#kb{gap:8px;padding-bottom:4px}
+.kr{gap:6px}
+.k{max-width:none;height:clamp(44px,8vh,66px);font-size:18px;border-radius:12px}
+.k.w{flex:1.6;max-width:none;font-size:13px}
+#top{grid-area:top}#live{grid-area:live}#defrow{grid-area:def}#hinttxt{grid-area:hint}#gridwrap{grid-area:grid}#res{grid-area:res}#kb{grid-area:kb}
+@media (min-width:700px){
+  #app{max-width:820px;padding:18px 24px}
+  #def{font-size:19px}
+  .k{max-width:none;font-size:20px}
+}
+@media (orientation:landscape) and (min-width:640px){
+  #app{max-width:1240px;padding:12px 28px}
+  #game{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto auto auto auto minmax(0,1fr) auto;grid-template-areas:"top top" "live live" "def kb" "hint kb" "grid kb" "grid res";column-gap:32px;row-gap:10px}
+  #kb{align-self:end}
+  #res{align-self:end}
+  #home{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"greet grid" "rules grid" "daily grid" "dock grid";grid-template-rows:auto auto auto 1fr;column-gap:20px}
+  #home>.greet{grid-area:greet}#home>.rules{grid-area:rules}#home>#mDaily{grid-area:daily}#home>.grid{grid-area:grid;grid-auto-rows:1fr}#home>.dock{grid-area:dock}
+  #online,#menu{max-width:640px;width:100%;margin:0 auto}
+  .k{height:clamp(38px,9vh,62px)}
+}
+@media (max-height:560px){.k{height:38px;font-size:15px}}
+[data-s]{touch-action:none;cursor:pointer}.tile{user-select:none;-webkit-user-select:none}.dg{cursor:grab}
+.ghost{position:fixed;z-index:30;pointer-events:none;transform:translate(-50%,-50%) scale(1.12);display:grid;place-items:center;border:2px solid var(--ac);border-radius:12px;background:var(--panel);font-weight:800;font-size:26px;box-shadow:var(--sh)}
+.mvs{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%}
+.mv{display:flex;align-items:center;gap:8px;min-width:0;flex:1}.mv.r{flex-direction:row-reverse;text-align:right}
+.mv b{display:block;font-size:14px;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mv span{font-size:12px}
 </style>
 </head>
 <body>
@@ -272,7 +304,7 @@ $('back').onclick=()=>{
 function next(){
   let p;if(mode==='daily'){const it=dailyPick();lv=it.l;p=it.w.split('|')}else if(mode==='online'){const it=seq[si%seq.length];lv=it.l;p=it.w.split('|')}else{if(!bag[lv].length){bag[lv]=W[lv].map((_,i)=>i).sort(()=>Math.random()-.5)}
   p=W[lv][bag[lv].pop()].split('|')}
-  word=p[0].toUpperCase();def=p[1];guesses=[];cur='';over=false;ks={};hintUsed=false;$('hinttxt').hidden=true;
+  word=p[0].toUpperCase();def=p[1];guesses=[];cur=Array(word.length).fill('');sel=-1;over=false;ks={};hintUsed=false;$('hinttxt').hidden=true;
   tries=mode==='daily'?3:word.length>8?7:6;
   $('menu').hidden=true;$('home').hidden=true;$('online').hidden=true;$('game').hidden=false;$('res').innerHTML='';
   $('back').textContent=mode==='practice'?'Seviyeler':'Çık';
@@ -289,42 +321,55 @@ function evalG(g){
   return s;
 }
 
+function locked(){const L=Array(word.length).fill('');guesses.forEach(g=>g.s.forEach((c,i)=>{if(c==='g')L[i]=g.w[i]}));return L}
+function full(){return locked().map((x,i)=>x||cur[i]||'').join('')}
 function draw(){
-  const n=word.length,t=Math.min(innerWidth>=700?64:52,Math.floor((Math.min(innerWidth,innerWidth>=1100?720:innerWidth>=700?640:520)-28-(n-1)*5)/n));
-  const gw=$('gridwrap');gw.style.setProperty('--t',t+'px');gw.style.setProperty('--s',Math.max(14,Math.floor(t*.5))+'px');
-  let h='';
-  guesses.forEach((g,gi)=>{h+='<div class="row'+(gi<guesses.length-1?' sm':'')+'">'+[...g.w].map((ch,i)=>'<div class="tile '+g.s[i]+'">'+ch+'</div>').join('')+'</div>'});
-  for(let r=guesses.length;r<(over?guesses.length:Math.min(tries,guesses.length+1));r++){
-    h+='<div class="row">';
-    for(let i=0;i<n;i++){const on=r===guesses.length&&i<cur.length;h+='<div class="tile'+(on?' f pop':'')+'">'+(on?cur[i]:'')+'</div>'}
-    h+='</div>';
-  }
-  gw.innerHTML='<div class="cap">Kalan hak: '+Math.max(0,tries-guesses.length)+'</div>'+h;gw.scrollTop=gw.scrollHeight;
+  const n=word.length,rows=tries,gw=$('gridwrap');
   $('hintbtn').hidden=!(guesses.length>=3&&!over&&!hintUsed);
   const pb=$('passbtn');pb.hidden=!(mode==='streak'&&run.passes>0&&!over);pb.textContent='Pas ('+run.passes+')';
-  const rows=['QWERTYUIOP','ASDFGHJKL','ZXCVBNM'];
-  $('kb').innerHTML=rows.map((r,ri)=>'<div class="kr">'+(ri===2?'<button class="k w" data-k="DEL">Sil</button>':'')+[...r].map(ch=>'<button class="k '+(ks[ch]||'')+'" data-k="'+ch+'"'+(ks[ch]==='r'?' disabled':'')+'>'+ch+'</button>').join('')+(ri===2?'<button class="k w" data-k="ENTER">Gönder</button>':'')+'</div>').join('');
+  const kr=['QWERTYUIOP','ASDFGHJKL','ZXCVBNM'];
+  $('kb').innerHTML=kr.map((r,ri)=>'<div class="kr">'+(ri===2?'<button class="k w" data-k="DEL">Sil</button>':'')+[...r].map(ch=>'<button class="k '+(ks[ch]||'')+'" data-k="'+ch+'"'+(ks[ch]==='r'?' disabled':'')+'>'+ch+'</button>').join('')+(ri===2?'<button class="k w" data-k="ENTER">Gönder</button>':'')+'</div>').join('');
+  $('kb').hidden=over;
   document.querySelectorAll('.k').forEach(b=>b.onclick=()=>press(b.dataset.k));
+  // kutular: ayrılan alanı dolduracak şekilde boyutlanır, kaydırma gerekmez
+  const gp=n>9?4:6,aw=gw.clientWidth||innerWidth-32,ah=gw.clientHeight||300,mx=innerWidth>=700?96:76;
+  const t=Math.max(16,Math.min(mx,Math.floor((aw-(n-1)*gp)/n),Math.floor((ah-26-rows*gp)/rows)));
+  gw.style.setProperty('--t',t+'px');gw.style.setProperty('--gp',gp+'px');
+  const L=locked();let h='';
+  for(let r=0;r<rows;r++){
+    h+='<div class="row">';
+    if(r<guesses.length){const g=guesses[r];h+=[...g.w].map((ch,i)=>'<div class="tile '+g.s[i]+'">'+ch+'</div>').join('')}
+    else if(r===guesses.length&&!over){
+      const fe=sel>=0&&!cur[sel]&&!L[sel]?sel:cur.findIndex((c,i)=>!c&&!L[i]);
+      for(let i=0;i<n;i++){
+        if(L[i])h+='<div class="tile g">'+L[i]+'</div>';
+        else{const c=cur[i];h+='<div class="tile'+(c?' f dg':i===fe?' cu':'')+'" data-s="'+i+'">'+(c||'')+'</div>'}
+      }
+    }else for(let i=0;i<n;i++)h+='<div class="tile"></div>';
+    h+='</div>';
+  }
+  gw.innerHTML='<div class="cap">Kalan hak: '+Math.max(0,tries-guesses.length)+'</div>'+h;
 }
 
 function press(k){
   if(over)return;
-  if(k==='DEL'){cur=cur.slice(0,-1);sfx('key')}
+  if(k==='DEL'){for(let i=cur.length-1;i>=0;i--)if(cur[i]){cur[i]='';break}sel=-1;sfx('key')}
   else if(k==='ENTER'){
-    if(cur.length<word.length){$('res').textContent='Kelime '+word.length+' harfli olmalı.';return}
-    const s=evalG(cur);
-    guesses.push({w:cur,s});
-    [...cur].forEach((ch,i)=>{
+    if(full().length<word.length){$('res').textContent='Boş kutuları doldur.';return}
+    const gs=full();
+    const s=evalG(gs);
+    guesses.push({w:gs,s});
+    [...gs].forEach((ch,i)=>{
       if(s[i]==='g')ks[ch]='g';
       else if(s[i]==='o'&&ks[ch]!=='g')ks[ch]='o';
       else if(s[i]==='r'&&!word.includes(ch))ks[ch]='r';
     });
-    const win=cur===word;cur='';sfx(win?'':'tick');
+    const win=gs===word;cur=Array(word.length).fill('');sel=-1;sfx(win?'':'tick');
     $('res').textContent='';
     if(win){const p=Math.max(0,LV[lv][1]*(tries-guesses.length+1)-(hintUsed?10:0));if(mode==='practice')score+=p;finish('Doğru!'+(mode==='daily'?'':' <b>+'+p+' puan</b>')+(mode==='streak'?streakWin(guesses.length,p):mode==='online'?oWin(p):mode==='daily'?dEnd(true):'')+bump(true,p))}
     else if(guesses.length>=tries)finish('Haklar bitti. Cevap: <b>'+word+'</b>'+(mode==='streak'?streakLose():mode==='online'?oLose():mode==='daily'?dEnd(false):'')+bump(false,0));
   }
-  else if(cur.length<word.length&&ks[k]!=='r'){cur+=k;sfx('key')}
+  else if(ks[k]!=='r'){const L=locked();const i=sel>=0&&!cur[sel]&&!L[sel]?sel:cur.findIndex((c,i)=>!c&&!L[i]);if(i>=0){cur[i]=k;sel=-1;sfx('key')}}
   draw();
 }
 
@@ -470,7 +515,7 @@ function oNext(){
 
 function oLive(L){
   L=rank(L||plist());
-  $('live').innerHTML=L.slice(0,4).map((x,i)=>'<span>'+(i+1)+'. '+esc(x.n)+' '+(cfg.m==='s'?x.w+' kelime':x.p+'p')+(x.a?'':' (elendi)')+'</span>').join('');
+  $('live').innerHTML=cfg.max===2?vsLive(L):L.slice(0,4).map((x,i)=>'<span>'+(i+1)+'. '+esc(x.n)+' '+(cfg.m==='s'?x.w+' kelime':x.p+'p')+(x.a?'':' (elendi)')+'</span>').join('');
   if(!$('online').hidden&&ost.fin)oResults();
 }
 function oResults(){
@@ -700,10 +745,12 @@ function toast(t){
 addEventListener('beforeinstallprompt',e=>{e.preventDefault();dip=e});
 function aSettings(){
   const sn=SO(),vb=VI();
-  panel('<p>Ayarlar</p>'+btn('s1','Ses: '+(sn?'Açık':'Kapalı'))+btn('s2','Titreşim: '+(vb?'Açık':'Kapalı'))+btn('s3','Tema seç')+btn('s4','Ana ekrana ekle')+'<p id="si">Titreşim iPhone ve iPad tarayıcılarında çalışmaz.</p>'+btn('ob','Ana menü'));
+  panel('<p>Ayarlar</p>'+btn('s1','Ses: '+(sn?'Açık':'Kapalı'))+btn('s2','Titreşim: '+(vb?'Açık':'Kapalı'))+btn('s5','Müzik: '+(MO()?'Açık':'Kapalı'))+'<p>Müzik sesi: <b id="vv">'+MV()+'%</b></p><input id="vr" type="range" min="0" max="100" value="'+MV()+'" style="width:100%;accent-color:var(--ac);margin-bottom:12px">'+btn('s3','Tema seç')+btn('s4','Ana ekrana ekle')+'<p id="si">Titreşim iPhone ve iPad tarayıcılarında çalışmaz.</p>'+btn('ob','Ana menü'));
   $('s1').onclick=()=>{try{localStorage.setItem('ka_snd',sn?'0':'1')}catch(e){}aSettings();sfx('win')};
   $('s2').onclick=()=>{try{localStorage.setItem('ka_vib',vb?'0':'1')}catch(e){}aSettings();sfx('tick')};
   $('s3').onclick=aTheme;
+  $('s5').onclick=()=>{try{localStorage.setItem('ka_mus',MO()?'0':'1')}catch(e){}MO()?musicStart():musicStop();aSettings()};
+  $('vr').oninput=e=>{const v=+e.target.value;try{localStorage.setItem('ka_vol',v)}catch(x){}$('vv').textContent=v+'%';if(mg)mg.gain.setTargetAtTime(v/100*.9,ac.currentTime,.05);if(v===0)musicStop();else if(MO()&&!mT)musicStart()};
   $('s4').onclick=()=>{
     if(dip){dip.prompt();dip=null}
     else $('si').textContent='Tarayıcı menüsünden "Ana ekrana ekle" ya da "Uygulamayı yükle" seçeneğini kullan. iPad ve iPhone Safari: Paylaş simgesi, sonra Ana Ekrana Ekle.';
@@ -880,6 +927,65 @@ function aBadges(){
   $('ob').onclick=aProfile;
 }
 
+</script>
+<script>
+let sel=-1,dg=null,mg=null,mT=null,mN=0,mB=0;
+const MV=()=>{try{const v=localStorage.getItem('ka_vol');return v===null?40:+v}catch(e){return 40}};
+const MO=()=>{try{return localStorage.getItem('ka_mus')!=='0'}catch(e){return true}};
+// Sürükle bırak: dolu kutuyu tut, başka kutuya bırak (boşsa taşınır, doluysa yer değişir). Boş kutuya dokun: sıradaki harf oraya gider.
+$('gridwrap').addEventListener('pointerdown',e=>{
+  if(over||e.button>0)return;
+  const t=e.target.closest('[data-s]');if(!t)return;
+  dg={s:+t.dataset.s,x:e.clientX,y:e.clientY,g:null,t};
+});
+addEventListener('pointermove',e=>{
+  if(!dg)return;
+  if(!dg.g){
+    if(!cur[dg.s]||Math.hypot(e.clientX-dg.x,e.clientY-dg.y)<8)return;
+    const g=document.createElement('div'),z=$('gridwrap').style.getPropertyValue('--t');
+    g.className='ghost';g.textContent=cur[dg.s];g.style.width=g.style.height=z;
+    document.body.appendChild(g);dg.g=g;dg.t.style.opacity='.3';
+  }
+  dg.g.style.left=e.clientX+'px';dg.g.style.top=e.clientY+'px';
+});
+addEventListener('pointerup',e=>{
+  if(!dg)return;
+  const d=dg;dg=null;
+  if(d.g){
+    d.g.remove();
+    const el=document.elementFromPoint(e.clientX,e.clientY),t=el&&el.closest('[data-s]');
+    if(t&&+t.dataset.s!==d.s){const j=+t.dataset.s,a=cur[d.s];cur[d.s]=cur[j];cur[j]=a;sfx('key')}
+    draw();
+  }else if(!cur[d.s]){sel=d.s;draw()}
+});
+addEventListener('pointercancel',()=>{if(dg){if(dg.g){dg.g.remove();draw()}dg=null}});
+function vsLive(L){
+  const me=L.find(x=>x.k===myId),op=L.find(x=>x.k!==myId);
+  const sd=(x,r,img)=>'<div class="mv'+(r?' r':'')+'">'+av(img,40)+'<div><b>'+esc(x?x.n:'Rakip yok')+'</b><span>'+(x?(cfg.m==='s'?x.w+' kelime':x.p+' puan')+(x.a?'':' (elendi)'):'')+'</span></div></div>';
+  return '<div class="mvs">'+sd(me,0,prof&&prof.avatar)+'<span class="vs-x" style="font-size:16px">VS</span>'+sd(op,1,op&&op.im)+'</div>';
+}
+// Müzik: dosya yok, kod üretiyor. Am-F-C-G akoru, yumuşak pad ve seyrek arpej.
+const CH=[[220,261.63,329.63],[174.61,220,261.63],[261.63,329.63,392],[196,246.94,293.66]];
+function mn(f,t,d,v,ty,at){const o=ac.createOscillator(),g=ac.createGain();o.type=ty;o.frequency.value=f;g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+at);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(mg);o.start(t);o.stop(t+d+.1)}
+function mTick(){
+  while(mN<ac.currentTime+1.5){
+    const b=mB%16,c=CH[b>>2];
+    if(b%4===0)c.forEach(f=>mn(f,mN,3.8,.05,'sine',.9));
+    if(Math.random()<.7){const o=Math.random()<.65?2:4;mn(c[Math.random()*3|0]*o,mN,1.8,o===2?.08:.05,'triangle',.03)}
+    mN+=.8;mB++;
+  }
+}
+function musicStart(){
+  if(!MO()||MV()<=0){musicStop();return}
+  ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();
+  if(!mg){mg=ac.createGain();mg.gain.value=0;mg.connect(ac.destination)}
+  mg.gain.setTargetAtTime(MV()/100*.9,ac.currentTime,.3);
+  if(!mT){mN=ac.currentTime+.1;mB=0;mT=setInterval(mTick,500)}
+}
+function musicStop(){if(mg&&ac)mg.gain.setTargetAtTime(0,ac.currentTime,.2);if(mT){clearInterval(mT);mT=null}}
+const mGo=()=>{if(!mT&&MO()&&MV()>0)musicStart()};
+addEventListener('pointerdown',mGo);addEventListener('keydown',mGo);
+document.addEventListener('visibilitychange',()=>{if(ac)document.hidden?ac.suspend():ac.resume()});
 </script>
 </body>
 </html>
