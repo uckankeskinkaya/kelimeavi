@@ -3,22 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Kelime Avı</title>
+<title>Vocaboo</title>
+<link rel="icon" href="logo.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
-<meta name="theme-color" content="#0f1622">
+<meta name="theme-color" content="#293c77">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Kelime Avı">
+<meta name="apple-mobile-web-app-title" content="Vocaboo">
 <script>try{var t=localStorage.getItem("ka_theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{--bg:#f5f6f8;--panel:#fff;--fg:#14171f;--dim:#6b7280;--line:#e5e7eb;--key:#e9ebf0;--ac:#4f46e5;--acf:#fff;--sh:0 1px 2px rgba(16,24,40,.05),0 8px 24px rgba(16,24,40,.06);--g:#22a35a;--o:#f08a24;--r:#e5484d;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root{--bg:#f5f6f8;--panel:#fff;--fg:#14171f;--dim:#6b7280;--line:#e5e7eb;--key:#e9ebf0;--ac:#293c77;--acf:#fff;--sh:0 1px 2px rgba(16,24,40,.05),0 8px 24px rgba(16,24,40,.06);--g:#22a35a;--o:#f08a24;--r:#e5484d;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme]){--bg:#0c0f14;--panel:#141922;--fg:#eef1f6;--dim:#8b95a7;--line:#222a37;--key:#222b3a;--ac:#8ea2ff;--acf:#0b0f1a;--sh:0 8px 24px rgba(0,0,0,.35)}}
-:root[data-theme="light"]{--bg:#f5f6f8;--panel:#fff;--fg:#14171f;--dim:#6b7280;--line:#e5e7eb;--key:#e9ebf0;--ac:#4f46e5;--acf:#fff}
+:root[data-theme="light"]{--bg:#f5f6f8;--panel:#fff;--fg:#14171f;--dim:#6b7280;--line:#e5e7eb;--key:#e9ebf0;--ac:#293c77;--acf:#fff}
 :root[data-theme="dark"]{--bg:#0c0f14;--panel:#141922;--fg:#eef1f6;--dim:#8b95a7;--line:#222a37;--key:#222b3a;--ac:#8ea2ff;--acf:#0b0f1a;--sh:0 8px 24px rgba(0,0,0,.35)}
 :root[data-theme="sakura"]{--bg:#fff4f7;--panel:#fff;--fg:#4a2b36;--dim:#a07585;--line:#f5d5df;--key:#fbe3ea;--ac:#e0658a;--acf:#fff}
 :root[data-theme="deniz"]{--bg:#071e2b;--panel:#0d2f40;--fg:#e6f6fb;--dim:#7fb0c4;--line:#164a62;--key:#17415a;--ac:#3ec6c0;--acf:#06222b;--sh:0 8px 24px rgba(0,0,0,.35)}
@@ -154,7 +155,7 @@ h1{font-size:18px;margin:0;font-weight:800;letter-spacing:-.3px}
 </head>
 <body>
 <div id="app">
-  <header><div class="brand"><span id="mark" class="mark"><i style="background:var(--g)"></i><i style="background:var(--g)"></i><i style="background:var(--o)"></i><i style="background:var(--r)"></i><i style="background:var(--g)"></i><i style="background:var(--g)"></i></span><img id="logo" alt="" hidden><h1>Kelime Avı</h1></div><span id="score">0 puan</span></header>
+  <header><div class="brand"><span id="mark" class="mark"><i style="background:var(--g)"></i><i style="background:var(--g)"></i><i style="background:var(--o)"></i><i style="background:var(--r)"></i><i style="background:var(--g)"></i><i style="background:var(--g)"></i></span><img id="logo" alt="" hidden><h1>vocaboo</h1></div><span id="score">0 puan</span></header>
   <div id="home" hidden>
     <div class="greet"><h2 id="hi">Hoş geldin</h2><p>Bugün hangi kelimeyi avlıyoruz?</p></div>
     <div class="rules"><span style="--c:var(--g)">Yeri doğru</span><span style="--c:var(--o)">Yeri yanlış</span><span style="--c:var(--r)">Kelimede yok</span></div>
@@ -832,7 +833,7 @@ function mark(s){
   return '<span class="mark" style="width:'+s+'px;height:'+s+'px;border-radius:'+Math.round(s*.3)+'px;grid-template-columns:repeat(3,'+k+'px);gap:'+g+'px">'+['g','g','o','r','g','g'].map(c=>'<i style="width:'+k+'px;height:'+k+'px;background:var(--'+c+')"></i>').join('')+'</span>';
 }
 function logoHTML(s){return logoOK?'<img src="logo.png" width="'+s+'" height="'+s+'" alt="" style="border-radius:'+Math.round(s*.28)+'px;object-fit:contain">':mark(s)}
-function heroHTML(){return '<div class="hero"><div class="hero-logo">'+logoHTML(60)+'</div><h2>Kelime Avı</h2><p>İngilizce kelime oyunu</p></div>'}
+function heroHTML(){return '<div class="hero"><div class="hero-logo">'+logoHTML(60)+'</div><h2>vocaboo</h2><p>İngilizce kelime oyunu</p></div>'}
 const LI=new Image();
 LI.onload=()=>{logoOK=true;$('logo').src='logo.png';$('logo').hidden=false;$('mark').hidden=true};
 LI.src='logo.png';
@@ -845,7 +846,7 @@ function rHome(){
   $('hav').innerHTML=av(prof&&prof.avatar,40);
 }
 
-const TH2=[['light','Aydınlık','#f5f6f8','#14171f','#4f46e5'],['dark','Karanlık','#0c0f14','#eef1f6','#8ea2ff'],['amoled','Amoled','#000000','#f2f2f2','#ffffff'],['sakura','Sakura','#fff4f7','#4a2b36','#e0658a'],['lavanta','Lavanta','#f6f3ff','#2a2146','#7c5cf0'],['nane','Nane','#eefaf5','#123b32','#12b886'],['orman','Orman','#f1f7ee','#1d3523','#3f9b62'],['deniz','Deniz','#071e2b','#e6f6fb','#3ec6c0'],['gunbatimi','Gün batımı','#1b1128','#fff0e3','#ff9b6b'],['kahve','Kahve','#1c1511','#f4e8dc','#d9a066']];
+const TH2=[['light','Aydınlık','#f5f6f8','#14171f','#293c77'],['dark','Karanlık','#0c0f14','#eef1f6','#8ea2ff'],['amoled','Amoled','#000000','#f2f2f2','#ffffff'],['sakura','Sakura','#fff4f7','#4a2b36','#e0658a'],['lavanta','Lavanta','#f6f3ff','#2a2146','#7c5cf0'],['nane','Nane','#eefaf5','#123b32','#12b886'],['orman','Orman','#f1f7ee','#1d3523','#3f9b62'],['deniz','Deniz','#071e2b','#e6f6fb','#3ec6c0'],['gunbatimi','Gün batımı','#1b1128','#fff0e3','#ff9b6b'],['kahve','Kahve','#1c1511','#f4e8dc','#d9a066']];
 function aTheme(){
   const cur=document.documentElement.dataset.theme||'';
   panel('<p>Tema seç</p>'+TH2.map(x=>'<button class="th2'+(x[0]===cur?' cur':'')+'" data-t="'+x[0]+'" style="background:'+x[2]+';color:'+x[3]+'"><span>'+x[1]+'</span><span><i style="background:'+x[4]+'"></i><i style="background:'+x[3]+'"></i></span></button>').join('')+btn('ob','Geri'));
