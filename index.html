@@ -417,12 +417,12 @@ function mkSeq(seed,l){
   for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
   return a;
 }
-function mine(){return{n:myName,t:t0,h:isHost?1:0,c:isHost?cfg:null,p:ost.p,w:ost.w,a:ost.a,d:ost.fin?1:0,im:myThumb,ti:titleOf(prof)}}
+function mine(){return{n:myName,t:t0,h:isHost?1:0,c:isHost?cfg:null,mo:(isHost&&cfg&&cfg.mod)?1:0,q:ost.q||0,p:ost.p,w:ost.w,a:ost.a,d:ost.fin?1:0,im:myThumb,ti:titleOf(prof)}}
 function plist(){
   const s=ch.presenceState();
-  return Object.keys(s).map(k=>{const v=s[k][s[k].length-1];return{k,n:String(v.n||'?').slice(0,12),t:+v.t||0,h:v.h,c:v.c,p:+v.p||0,w:+v.w||0,a:v.a,d:v.d,im:String(v.im||'').slice(0,6000),ti:String(v.ti||'').slice(0,20)}});
+  return Object.keys(s).map(k=>{const v=s[k][s[k].length-1];return{k,n:String(v.n||'?').slice(0,12),t:+v.t||0,h:v.h,c:v.c,mo:v.mo?1:0,q:+v.q||0,p:+v.p||0,w:+v.w||0,a:v.a,d:v.d,im:String(v.im||'').slice(0,6000),ti:String(v.ti||'').slice(0,20)}});
 }
-function rank(L){return L.sort((a,b)=>cfg&&cfg.m==='s'?(b.w-a.w)||(b.p-a.p):(b.p-a.p))}
+function rank(L){return L.filter(x=>!(x.h&&x.mo)).sort((a,b)=>cfg&&cfg.m==='s'?(b.w-a.w)||(b.p-a.p):(b.p-a.p))}
 
 function oHome(){
   $('home').hidden=true;$('online').hidden=false;
@@ -440,11 +440,11 @@ function oHome(){
 }
 
 function oSetup(){
-  on('<p>Kişi</p><select id="s1" style="'+SEL+'"><option value="2">1v1 (2 kişi)</option><option value="50">Grup</option></select><p>Mod</p><select id="s2" style="'+SEL+'"><option value="c15">Puan yarışı, 15 kelime</option><option value="c20">Puan yarışı, 20 kelime</option><option value="s180">Hayatta kalma, 3 dakika</option><option value="s300">Hayatta kalma, 5 dakika</option></select><p>Seviye</p><select id="s3" style="'+SEL+'"><option value="-1">Karışık (B1 ile B2+)</option>'+LBL.map((l,i)=>'<option value="'+i+'">'+l+'</option>').join('')+'</select>'+btn('ok2','Odayı kur')+btn('ob','Geri'));
+  on('<p>Kişi</p><select id="s1" style="'+SEL+'"><option value="2">1v1 (2 kişi)</option><option value="50">Grup</option></select><p>Mod</p><select id="s2" style="'+SEL+'"><option value="c15">Puan yarışı, 15 kelime</option><option value="c20">Puan yarışı, 20 kelime</option><option value="s180">Hayatta kalma, 3 dakika</option><option value="s300">Hayatta kalma, 5 dakika</option></select><p>Seviye</p><select id="s3" style="'+SEL+'"><option value="-1">Karışık (B1 ile B2+)</option>'+LBL.map((l,i)=>'<option value="'+i+'">'+l+'</option>').join('')+'</select><p>Moderatör modu (sadece grup)</p><select id="s4" style="'+SEL+'"><option value="0">Kapalı, ben de oynarım</option><option value="1">Açık, ben oyunu takip ederim</option></select>'+btn('ok2','Odayı kur')+btn('ob','Geri'));
   $('ob').onclick=oHome;
   $('ok2').onclick=()=>{
     const m=$('s2').value;
-    cfg={max:+$('s1').value,m:m[0],n:m[0]==='c'?+m.slice(1):0,dur:m[0]==='s'?+m.slice(1):0,l:+$('s3').value};
+    cfg={max:+$('s1').value,m:m[0],n:m[0]==='c'?+m.slice(1):0,dur:m[0]==='s'?+m.slice(1):0,l:+$('s3').value,mod:(+$('s1').value>2&&$('s4').value==='1')?1:0};
     oJoin(Math.random().toString(36).slice(2,6).toUpperCase(),true);
   };
 }
@@ -455,6 +455,7 @@ function oJoin(code,h){
   ch=sb.channel('ka-'+code,{config:{broadcast:{self:true},presence:{key:myId}}});
   ch.on('presence',{event:'sync'},oSync);
   ch.on('broadcast',{event:'start'},e=>oBegin(e.payload));
+  ch.on('broadcast',{event:'end'},()=>oEnd());
   ch.subscribe(s=>{
     if(s==='SUBSCRIBED'){ch.track(mine());oLobby()}
     else if(s==='CHANNEL_ERROR'||s==='TIMED_OUT')oExit('Bağlantı kurulamadı. Supabase adresini ve anahtarını kontrol et.');
@@ -467,18 +468,18 @@ function oSync(){
   if(H&&H.c)cfg=H.c;
   if(isHost&&auto&&!started&&!autoSent&&L.length>=2){autoSent=true;ch.send({type:'broadcast',event:'start',payload:{seed:Math.floor(Math.random()*1e9),c:cfg}})}
   if(!started){
-    if(cfg&&!isHost&&L.findIndex(x=>x.k===myId)>=cfg.max){oExit('Oda dolu.');return}
+    if(cfg&&!isHost&&L.findIndex(x=>x.k===myId)>=cfg.max+(cfg.mod?1:0)){oExit('Oda dolu.');return}
     oLobby(L);
   }else oLive(L);
 }
 
 function oLobby(L){
   L=L||plist();
-  const c=cfg,info=c?(c.max===2?'1v1':'Grup')+', '+(c.m==='c'?'Puan yarışı, '+c.n+' kelime':'Hayatta kalma, '+(c.dur/60)+' dakika')+', '+(c.l<0?'Karışık':LBL[c.l]):'Oda bilgisi bekleniyor';
-  on('<p>Oda kodu</p><h1 style="letter-spacing:6px;margin:0 0 6px">'+esc(room)+'</h1><p>'+info+'</p>'+(c&&c.max===2?vsHTML(L):L.map(x=>'<div class="pl"><span style="display:flex;align-items:center;gap:8px">'+av(x.im,28)+esc(x.n)+(x.h?' (kurucu)':'')+' <small style="color:var(--dim)">'+esc(x.ti||'')+'</small></span></div>').join(''))+(isHost?btn('go','Başlat ('+L.length+' kişi)'):'<p>Kurucunun başlatması bekleniyor.</p>')+btn('ob','Çık'));
+  const c=cfg,info=c?(c.max===2?'1v1':'Grup'+(c.mod?' (moderatörlü)':''))+', '+(c.m==='c'?'Puan yarışı, '+c.n+' kelime':'Hayatta kalma, '+(c.dur/60)+' dakika')+', '+(c.l<0?'Karışık':LBL[c.l]):'Oda bilgisi bekleniyor';
+  on('<p>Oda kodu</p><h1 style="letter-spacing:6px;margin:0 0 6px">'+esc(room)+'</h1><p>'+info+'</p>'+(c&&c.max===2?vsHTML(L):L.map(x=>'<div class="pl"><span style="display:flex;align-items:center;gap:8px">'+av(x.im,28)+esc(x.n)+(x.h?(x.mo?' (moderatör)':' (kurucu)'):'')+' <small style="color:var(--dim)">'+esc(x.ti||'')+'</small></span></div>').join(''))+(isHost?btn('go','Başlat ('+L.filter(x=>!(x.h&&x.mo)).length+' oyuncu)'):'<p>Kurucunun başlatması bekleniyor.</p>')+btn('ob','Çık'));
   $('ob').onclick=()=>oExit();
   if(isHost)$('go').onclick=()=>{
-    if(plist().length<2){alert('En az 2 kişi gerekli.');return}
+    if(plist().filter(x=>!(x.h&&x.mo)).length<(cfg.mod?1:2)){alert(cfg.mod?'En az 1 oyuncu gerekli.':'En az 2 kişi gerekli.');return}
     ch.send({type:'broadcast',event:'start',payload:{seed:Math.floor(Math.random()*1e9),c:cfg}});
   };
 }
@@ -490,6 +491,7 @@ function oBegin(pl){clearInterval(mmT);mmT=null;sess=[];
   seq=mkSeq(pl.seed,cfg.l);si=0;mode='online';
   $('live').hidden=false;
   ch.track(mine());
+  if(isHost&&cfg.mod){modStart();return}
   if(cfg.max===2)oVs(3);else oGo();
 }
 function oGo(){
@@ -509,12 +511,12 @@ function oHud(){
   }else $('badge').textContent='Kelime '+(si+1)+'/'+ost.n;
 }
 function oWin(p){
-  ost.p+=p;ost.w++;
+  ost.p+=p;ost.w++;ost.q=(ost.q||0)+1;
   if(ost.m==='c'&&si+1>=ost.n)ost.fin=true;
   ch.track(mine());
   return ost.fin?'<br>Son kelime!':'';
 }
-function oLose(){
+function oLose(){ost.q=(ost.q||0)+1;
   if(ost.m==='s'){ost.a=0;ost.fin=true}
   else if(si+1>=ost.n)ost.fin=true;
   ch.track(mine());
@@ -525,7 +527,7 @@ function oNext(){
   si++;next();
 }
 
-function oLive(L){
+function oLive(L){if(modView){oModRender(rank(L||plist()));return}
   L=rank(L||plist());
   $('live').innerHTML=cfg.max===2?vsLive(L):L.slice(0,4).map((x,i)=>'<span>'+(i+1)+'. '+esc(x.n)+' '+(cfg.m==='s'?x.w+' kelime':x.p+'p')+(x.a?'':' (elendi)')+'</span>').join('');
   if(!$('online').hidden&&ost.fin)oResults();
@@ -538,7 +540,7 @@ function oResults(){
   $('ob').onclick=()=>oExit();
 }
 
-function oExit(msg){rndStop();
+function oExit(msg){rndStop();modView=false;modDone=false;
   clearInterval(tmr);
   if(ch&&sb)sb.removeChannel(ch);
   ch=null;started=false;mode='practice';
@@ -1225,6 +1227,37 @@ function aAvatar(){
     prof.avatar=v;toast('Avatar kaydedildi');aProfile();
   });
   $('ob').onclick=aProfile;
+}
+</script>
+<script>
+// Moderatör modu: kurucu oynamaz, sorulari dogru cevaplariyla ve canli sirayi izler
+var modView=false,modDone=false,modEnd=0;
+function oEnd(){
+  if(!started)return;
+  if(modView){modDone=true;oModRender(rank(plist()));return}
+  if(ost.fin)return;
+  ost.fin=true;over=true;clearInterval(tmr);ch.track(mine());oResults();
+}
+function modStart(){
+  modView=true;modDone=false;mode='online';
+  modEnd=cfg.m==='s'?Date.now()+cfg.dur*1000:0;
+  const n=cfg.m==='c'?cfg.n:40;
+  const qs=seq.slice(0,n).map((it,i)=>{const p=it.w.split('|');return '<div class="pl" style="flex-direction:column;align-items:stretch;gap:2px"><div style="display:flex;justify-content:space-between"><b>'+(i+1)+'. '+esc(p[0].toUpperCase())+'</b><span class="cap" data-qc="'+i+'" data-l="'+LBL[it.l]+'"></span></div><small style="color:var(--dim)">'+esc(p[1])+'.</small></div>'}).join('');
+  panel('<p id="mh"></p><p><b>En yüksekler</b></p><div id="mtop"></div><p><b>Sorular ve doğru cevaplar</b></p>'+qs+btn('mend','Oyunu bitir')+btn('ob','Çık'));
+  $('mend').onclick=()=>cfAsk('Oyun herkes için bitsin mi?','Bitir','Vazgeç',()=>ch.send({type:'broadcast',event:'end'}));
+  $('ob').onclick=()=>oExit();
+  clearInterval(tmr);tmr=setInterval(()=>{if(modView)oModRender(rank(plist()))},1000);
+  oModRender(rank(plist()));
+}
+function oModRender(L){
+  if(!$('mh'))return;
+  const all=plist().filter(x=>!(x.h&&x.mo)),done=all.filter(x=>x.d).length;
+  const rem=modEnd?Math.max(0,Math.ceil((modEnd-Date.now())/1000)):0;
+  if(modEnd&&rem<=0)modDone=true;
+  if(all.length&&done>=all.length)modDone=true;
+  $('mh').innerHTML='<b>Moderatör</b> · Oda '+esc(room)+'<br>'+all.length+' oyuncu, '+done+' bitirdi'+(modDone?' · <b>Oyun bitti</b>':modEnd?' · '+Math.floor(rem/60)+':'+String(rem%60).padStart(2,'0'):'');
+  $('mtop').innerHTML=L.slice(0,10).map((x,i)=>'<div class="pl"><span style="display:flex;align-items:center;gap:8px;min-width:0">'+(i+1)+'. '+av(x.im,28)+esc(x.n)+(x.a?'':' (elendi)')+'</span><b>'+(cfg.m==='s'?x.w+' kelime, ':'')+x.p+' puan</b></div>').join('')||'<p>Henüz oyuncu yok.</p>';
+  document.querySelectorAll('[data-qc]').forEach(e=>{const i=+e.dataset.qc;e.textContent=e.dataset.l+' · '+all.filter(x=>x.q>i).length+'/'+all.length+' tamamladı'});
 }
 </script>
 </body>
