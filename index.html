@@ -195,6 +195,12 @@ h1{font-size:18px;margin:0;font-weight:800;letter-spacing:-.3px}
 .cfb button{flex:1;height:48px;border-radius:14px;border:1px solid var(--line);background:var(--panel);font-weight:700;font-size:15px}
 .cfb button.m{background:var(--fg);color:var(--bg);border-color:var(--fg)}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--line);margin-right:5px}.dot.on{background:var(--g)}
+:root[data-cb="1"]{--g:#2f6fed;--o:#f59e0b;--r:#6b7280}
+#cft{white-space:pre-line}
+#wv{position:fixed;inset:0;z-index:40;background:var(--bg);overflow-y:auto;padding:calc(14px + env(safe-area-inset-top,0px)) 16px 24px}
+.wvi{max-width:560px;margin:0 auto}
+.wvr{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:10px 14px;margin-bottom:8px}
+.wvr b.w{font-size:16px}.wvr small{display:block;color:var(--dim);line-height:1.4;margin-top:3px}
 </style>
 </head>
 <body>
@@ -245,7 +251,7 @@ let lv=0,word='',def='',guesses=[],cur='',over=false,score=0,tries=6,ks={},hintU
 const bag=[[],[],[],[],[]];
 
 $('lvls').innerHTML=LV.map((l,i)=>'<button class="lvl" data-i="'+i+'"><span><b>'+l[0]+'</b><small>'+l[2]+'</small></span><span>x'+l[1]+'</span></button>').join('');
-document.querySelectorAll('#lvls .lvl').forEach(b=>b.onclick=()=>{mode='practice';lv=+b.dataset.i;next()});
+document.querySelectorAll('#lvls .lvl').forEach(b=>b.onclick=()=>{sess=[];mode='practice';lv=+b.dataset.i;next()});
 $('hintbtn').onclick=async()=>{
   if(over||hintUsed)return;
   hintUsed=true;
@@ -273,7 +279,7 @@ async function startStreak(){
   if(busy)return;busy=true;
   const r=await sb.rpc('run_start');busy=false;
   if(r.error){toast('Bağlantı hatası');return}
-  mode='streak';run={lives:3,streak:0,first:0,passes:0,score:0,dead:false,max:0};SR=r.data;next();
+  sess=[];mode='streak';run={lives:3,streak:0,first:0,passes:0,score:0,dead:false,max:0};SR=r.data;next();
 }
 async function nextStreak(){
   if(busy)return;busy=true;
@@ -378,10 +384,10 @@ function press(k){
   draw();
 }
 
-function finish(msg){
+function finish(msg){noteWord();
   over=true;hud();$('score').textContent=sc()+' puan';
-  $('res').innerHTML=msg+'<br><span style="color:var(--dim)">'+word+': '+def+'.</span><div class="row2"><button id="lv2">'+(mode==='practice'?'Seviyeler':mode==='streak'?'Ana menü':'Çık')+'</button><button class="m" id="nx">'+(mode==='streak'&&run.dead?'Yeniden oyna':mode==='online'&&ost.fin?'Sonuçlar':mode==='daily'?'Ana menü':'Sonraki kelime')+'</button></div>';
-  $('lv2').onclick=()=>$('back').click();
+  $('res').innerHTML=msg+'<br><span style="color:var(--dim)">'+word+': '+def+'. <button class="sbtn" id="spk" aria-label="Dinle">🔊</button> <button class="sbtn" id="shr">Paylaş</button> <button class="sbtn" id="kw">Kelimeler</button></span><div class="row2"><button id="lv2">'+(mode==='practice'?'Seviyeler':mode==='streak'?'Ana menü':'Çık')+'</button><button class="m" id="nx">'+(mode==='streak'&&run.dead?'Yeniden oyna':mode==='online'&&ost.fin?'Sonuçlar':mode==='daily'?'Ana menü':'Sonraki kelime')+'</button></div>';
+  $('lv2').onclick=()=>$('back').click();$('spk').onclick=()=>speak(word);$('shr').onclick=shareRes;$('kw').onclick=showWords;
   $('nx').onclick=mode==='daily'?()=>oExit():mode==='online'?oNext:mode==='streak'?(run.dead?startStreak:nextStreak):next;
 }
 
@@ -477,7 +483,7 @@ function oLobby(L){
   };
 }
 
-function oBegin(pl){clearInterval(mmT);mmT=null;
+function oBegin(pl){clearInterval(mmT);mmT=null;sess=[];
   if(started||!pl||!pl.c)return;
   started=true;cfg=pl.c;
   ost={p:0,w:0,a:1,fin:false,end:0,n:cfg.n,m:cfg.m};
@@ -596,7 +602,7 @@ async function aGo(reg){
 function aProfile(){
   if(!sb){noSb();return}
   if(!prof){aAuth();return}
-  panel('<div style="text-align:center">'+av(prof.avatar,96)+'<h2 style="margin:8px 0 10px">'+esc(prof.username)+'</h2></div><div class="pl"><span>Rekor (Seri Modu)</span><b>'+prof.best_score+'</b></div><div class="pl"><span>En uzun seri</span><b>'+prof.best_streak+' kelime</b></div><input id="pf" type="file" accept="image/*" hidden>'+btn('pp','Profil fotoğrafı seç')+btn('lo','Çıkış yap')+btn('ob','Ana menü'));
+  panel('<div style="text-align:center">'+av(prof.avatar,96)+'<h2 style="margin:8px 0 10px">'+esc(prof.username)+'</h2></div><div class="pl"><span>Rekor (Seri Modu)</span><b>'+prof.best_score+'</b></div><div class="pl"><span>En uzun seri</span><b>'+prof.best_streak+' kelime</b></div><input id="pf" type="file" accept="image/*" hidden>'+btn('nb','Kelime defterim')+btn('pp','Profil fotoğrafı seç')+btn('lo','Çıkış yap')+btn('ob','Ana menü'));
   $('ob').onclick=()=>oExit();
   $('pp').onclick=()=>$('pf').click();
   $('pf').onchange=aPhoto;
@@ -687,7 +693,7 @@ async function startDaily(){
   const r=await sb.rpc('daily_start');busy=false;
   if(r.error){toast('Bağlantı hatası');return}
   if(r.data.done){dDone(r.data);return}
-  mode='daily';SR=r.data;next();
+  sess=[];mode='daily';SR=r.data;next();
 }
 function dDone(d){
   const p=[d.ans,d.def],ms=(dayNum()+1)*864e5-108e5-Date.now(),h=Math.floor(ms/36e5),m=Math.floor(ms%36e5/6e4);
@@ -704,7 +710,7 @@ function aProfile(){
   const lo=k?T[k-1][0]:0,hi=T[k][0],pct=hi>=1e9?100:Math.round((n-lo)/(hi-lo)*100);
   const ds=P.last_daily&&P.last_daily>=dStr(dayNum()-1)?P.daily_streak:0;
   const S=(a,b)=>'<div class="sc"><b>'+a+'</b><span>'+b+'</span></div>';
-  panel('<div style="text-align:center">'+av(P.avatar,96)+'<h2 style="margin:8px 0 2px">'+esc(P.username)+'</h2><p>'+T[k][1]+', '+n+' kelime</p><div style="height:8px;border-radius:4px;background:var(--key);margin:0 20px 14px"><div style="height:8px;border-radius:4px;background:var(--g);width:'+pct+'%"></div></div></div><div class="sg">'+S(P.best_score,'Seri rekoru')+S(P.best_streak,'En uzun seri')+S(t?Math.round(n/t*100)+'%':'-','Doğruluk')+S(n?(P.total_guesses/n).toFixed(1):'-','Ortalama tahmin')+S(P.first_try||0,'İlk denemede')+S(P.hints_used||0,'İpucu kullanımı')+S(P.total_points||0,'Toplam puan')+S(P.streak_runs||0,'Seri oyunu')+S((P.daily_wins||0)+'/'+(P.daily_played||0),'Günlük kazanılan')+S(ds+' (en iyi '+(P.best_daily_streak||0)+')','Günlük seri')+'</div>'+bdHTML(P)+'<input id="pf" type="file" accept="image/*" hidden><div style="height:12px"></div>'+btn('pp','Profil fotoğrafı seç')+btn('lo','Çıkış yap')+btn('ob','Ana menü'));
+  panel('<div style="text-align:center">'+av(P.avatar,96)+'<h2 style="margin:8px 0 2px">'+esc(P.username)+'</h2><p>'+T[k][1]+', '+n+' kelime</p><div style="height:8px;border-radius:4px;background:var(--key);margin:0 20px 14px"><div style="height:8px;border-radius:4px;background:var(--g);width:'+pct+'%"></div></div></div><div class="sg">'+S(P.best_score,'Seri rekoru')+S(P.best_streak,'En uzun seri')+S(t?Math.round(n/t*100)+'%':'-','Doğruluk')+S(n?(P.total_guesses/n).toFixed(1):'-','Ortalama tahmin')+S(P.first_try||0,'İlk denemede')+S(P.hints_used||0,'İpucu kullanımı')+S(P.total_points||0,'Toplam puan')+S(P.streak_runs||0,'Seri oyunu')+S((P.daily_wins||0)+'/'+(P.daily_played||0),'Günlük kazanılan')+S(ds+' (en iyi '+(P.best_daily_streak||0)+')','Günlük seri')+'</div>'+bdHTML(P)+'<input id="pf" type="file" accept="image/*" hidden><div style="height:12px"></div>'+btn('nb','Kelime defterim')+btn('pp','Profil fotoğrafı seç')+btn('lo','Çıkış yap')+btn('ob','Ana menü'));
   $('ob').onclick=()=>oExit();
   $('pp').onclick=()=>$('pf').click();
   $('pf').onchange=aPhoto;
@@ -752,10 +758,11 @@ function toast(t){
 addEventListener('beforeinstallprompt',e=>{e.preventDefault();dip=e});
 function aSettings(){
   const sn=SO(),vb=VI();
-  panel('<p>Ayarlar</p>'+btn('s1','Ses: '+(sn?'Açık':'Kapalı'))+btn('s2','Titreşim: '+(vb?'Açık':'Kapalı'))+btn('s5','Müzik: '+(MO()?'Açık':'Kapalı'))+'<p>Müzik sesi: <b id="vv">'+MV()+'%</b></p><input id="vr" type="range" min="0" max="100" value="'+MV()+'" style="width:100%;accent-color:var(--ac);margin-bottom:12px">'+btn('s3','Tema seç')+btn('s4','Ana ekrana ekle')+'<p id="si">Titreşim iPhone ve iPad tarayıcılarında çalışmaz.</p>'+btn('ob','Ana menü'));
+  panel('<p>Ayarlar</p>'+btn('s1','Ses: '+(sn?'Açık':'Kapalı'))+btn('s2','Titreşim: '+(vb?'Açık':'Kapalı'))+btn('s5','Müzik: '+(MO()?'Açık':'Kapalı'))+'<p>Müzik sesi: <b id="vv">'+MV()+'%</b></p><input id="vr" type="range" min="0" max="100" value="'+MV()+'" style="width:100%;accent-color:var(--ac);margin-bottom:12px">'+btn('s6','Renk körü modu: '+(CB()?'Açık':'Kapalı'))+btn('s3','Tema seç')+btn('s4','Ana ekrana ekle')+'<p id="si">Titreşim iPhone ve iPad tarayıcılarında çalışmaz.</p>'+btn('ob','Ana menü'));
   $('s1').onclick=()=>{try{localStorage.setItem('ka_snd',sn?'0':'1')}catch(e){}aSettings();sfx('win')};
   $('s2').onclick=()=>{try{localStorage.setItem('ka_vib',vb?'0':'1')}catch(e){}aSettings();sfx('tick')};
   $('s3').onclick=aTheme;
+  $('s6').onclick=()=>{try{localStorage.setItem('ka_cb',CB()?'0':'1')}catch(e){}applyCB();aSettings()};
   $('s5').onclick=()=>{try{localStorage.setItem('ka_mus',MO()?'0':'1')}catch(e){}MO()?musicStart():musicStop();aSettings()};
   $('vr').oninput=e=>{const v=+e.target.value;try{localStorage.setItem('ka_vol',v)}catch(x){}$('vv').textContent=v+'%';if(mg)mg.gain.setTargetAtTime(v/100*.9,ac.currentTime,.05);if(v===0)musicStop();else if(MO()&&!mT)musicStart()};
   $('s4').onclick=()=>{
@@ -800,9 +807,9 @@ async function aBoard(tab,col){
   tab=tab||'all';col=col||'best_score';
   if(!sb){noSb();return}
   panel('<p>Yükleniyor...</p>');
-  const wk=dStr(dayNum()-((dayNum()+3)%7));
+  const wk=dStr(dayNum()-((dayNum()+3)%7)-(tab==='last'?7:0));
   let d=[],err=false;
-  if(tab==='week'){
+  if(tab==='fr'){const r=await sb.rpc('friend_list');err=!!r.error;if(!err)d=[{u:prof.username,a:prof.avatar,v:prof.best_score}].concat(r.data.friends.map(x=>({u:x.u,a:x.im,v:x.bs}))).sort((a,b)=>b.v-a.v)}else if(tab==='week'||tab==='last'){
     const r=await sb.from('weekly_scores').select('best_score,profiles!inner(username,avatar)').eq('week',wk).eq('profiles.cls',true).gt('best_score',0).order('best_score',{ascending:false}).limit(20);
     err=!!r.error;d=(r.data||[]).map(x=>({u:x.profiles&&x.profiles.username,a:x.profiles&&x.profiles.avatar,v:x.best_score}));
   }else{
@@ -811,14 +818,14 @@ async function aBoard(tab,col){
   }
   if(err){panel('<p>Skor tablosu yüklenemedi.</p>'+btn('ob','Ana menü'));$('ob').onclick=()=>oExit();return}
   const tb=(id,t,on)=>'<button class="lvl" id="'+id+'" style="margin:0;justify-content:center'+(on?';border-color:var(--g)':'')+'">'+t+'</button>';
-  panel('<div style="display:flex;gap:8px;margin-bottom:10px">'+tb('t1','Tüm zamanlar',tab==='all')+tb('t2','Haftalık',tab==='week')+'</div>'+(tab==='all'?'<div style="display:flex;gap:8px;margin-bottom:10px">'+tb('c1','Seri rekoru',col==='best_score')+tb('c2','Günlük seri',col!=='best_score')+'</div>':'<p>Bu haftanın Seri Modu puanı. Pazartesi sıfırlanır.</p>')+(d.length?d.map((x,i)=>'<div class="pl"><span style="display:flex;align-items:center;gap:8px">'+(i+1)+'. '+av(x.a,28)+esc(x.u||'?')+(prof&&x.u===prof.username?' (sen)':'')+'</span><b>'+x.v+'</b></div>').join(''):'<p>Henüz kayıt yok.</p>')+btn('ob','Ana menü'));
+  panel('<div style="display:flex;gap:8px;margin-bottom:10px">'+tb('t1','Tüm zamanlar',tab==='all')+tb('t2','Haftalık',tab==='week')+'</div><div style="display:flex;gap:8px;margin-bottom:10px">'+tb('t3','Geçen hafta',tab==='last')+tb('t4','Arkadaşlar',tab==='fr')+'</div>'+(tab==='all'?'<div style="display:flex;gap:8px;margin-bottom:10px">'+tb('c1','Seri rekoru',col==='best_score')+tb('c2','Günlük seri',col!=='best_score')+'</div>':(tab==='fr'?'<p>Senin ve arkadaşlarının Seri rekoru.</p>':tab==='last'?'<p>Geçen haftanın sınıf sıralaması.</p>':'<p>Bu haftanın Seri Modu puanı. Pazartesi sıfırlanır.</p>'))+(d.length?d.map((x,i)=>'<div class="pl"><span style="display:flex;align-items:center;gap:8px">'+(tab==='last'&&i<3?['🥇','🥈','🥉'][i]+' ':(i+1)+'. ')+av(x.a,28)+esc(x.u||'?')+(prof&&x.u===prof.username?' (sen)':'')+'</span><b>'+x.v+'</b></div>').join(''):'<p>Henüz kayıt yok.</p>')+btn('ob','Ana menü'));
   $('t1').onclick=()=>aBoard('all',col);
-  $('t2').onclick=()=>aBoard('week');
+  $('t2').onclick=()=>aBoard('week');$('t3').onclick=()=>aBoard('last');$('t4').onclick=()=>aBoard('fr');
   if(tab==='all'){$('c1').onclick=()=>aBoard('all','best_score');$('c2').onclick=()=>aBoard('all','best_daily_streak')}
   $('ob').onclick=()=>oExit();
 }
 
-const EX={travel:"We like to travel by train in the summer.",ticket:"I bought a ticket for the concert online.",narrow:"The street was so narrow that cars could not pass.",advice:"My teacher gave me good advice about learning English.",reduce:"We should reduce the amount of plastic we use.",polite:"It is polite to say thank you.",brave:"The brave boy jumped into the river to help the dog.",garden:"They grow tomatoes in their garden.",lazy:"He felt lazy and stayed in bed all morning.",empty:"The fridge was empty, so we ordered pizza.",beach:"Children were building sandcastles on the beach.",market:"My mother buys fresh fruit at the market.",winter:"It snows a lot here in winter.",pocket:"He put the keys in his pocket.",island:"They spent a week on a small island.",nervous:"I always feel nervous before an exam.",rescue:"Firefighters came to rescue the cat from the tree.",shelf:"The books are on the top shelf.",tiny:"A tiny spider was sitting on the wall.",whisper:"Please whisper because the baby is sleeping.",useful:"This app is very useful for learning words.",volunteer:"She works as a volunteer at the animal shelter.",weekend:"What are you doing this weekend?",address:"Please write your address on the form.",bottle:"He drank a whole bottle of water after the run.",careful:"Be careful when you cross the road.",comfort:"She listened to music for comfort.",cotton:"This shirt is made of soft cotton.",desert:"Very little rain falls in the desert.",disease:"Washing your hands helps stop the spread of disease.",double:"Please add a double portion of rice.",enough:"Do we have enough chairs for everyone?",event:"The school is planning a big event in May.",factory:"He works in a car factory.",fever:"She stayed home because she had a fever.",flight:"Our flight to London was two hours late.",friendly:"The people in this town are very friendly.",guest:"Our guest will stay with us for three days.",habit:"Reading before bed is a good habit.",hungry:"I am so hungry that I could eat a horse.",injury:"He missed the match because of a knee injury.",knowledge:"Her knowledge of history is impressive.",mistake:"It was a big mistake to leave early.",neighbour:"Our neighbour has a very friendly dog.",parcel:"A parcel arrived for you this morning.",pleasant:"We had a pleasant walk along the river.",recipe:"This recipe needs only three ingredients.",salary:"He gets his salary at the end of the month.",shout:"Please do not shout in the library.",strange:"The house was quiet and a little strange."};
+const EX={travel:"We like to travel by train in the summer.",ticket:"I bought a ticket for the concert online.",narrow:"The street was so narrow that cars could not pass.",advice:"My teacher gave me good advice about learning English.",reduce:"We should reduce the amount of plastic we use.",polite:"It is polite to say thank you.",brave:"The brave boy jumped into the river to help the dog.",garden:"They grow tomatoes in their garden.",lazy:"He felt lazy and stayed in bed all morning.",empty:"The fridge was empty, so we ordered pizza.",beach:"Children were building sandcastles on the beach.",market:"My mother buys fresh fruit at the market.",winter:"It snows a lot here in winter.",pocket:"He put the keys in his pocket.",island:"They spent a week on a small island.",nervous:"I always feel nervous before an exam.",rescue:"Firefighters came to rescue the cat from the tree.",shelf:"The books are on the top shelf.",tiny:"A tiny spider was sitting on the wall.",whisper:"Please whisper because the baby is sleeping.",useful:"This app is very useful for learning words.",volunteer:"She works as a volunteer at the animal shelter.",weekend:"What are you doing this weekend?",address:"Please write your address on the form.",bottle:"He drank a whole bottle of water after the run.",careful:"Be careful when you cross the road.",comfort:"She listened to music for comfort.",cotton:"This shirt is made of soft cotton.",desert:"Very little rain falls in the desert.",disease:"Washing your hands helps stop the spread of disease.",double:"Please add a double portion of rice.",enough:"Do we have enough chairs for everyone?",event:"The school is planning a big event in May.",factory:"He works in a car factory.",fever:"She stayed home because she had a fever.",flight:"Our flight to London was two hours late.",friendly:"The people in this town are very friendly.",guest:"Our guest will stay with us for three days.",habit:"Reading before bed is a good habit.",hungry:"I am so hungry that I could eat a horse.",injury:"He missed the match because of a knee injury.",knowledge:"Her knowledge of history is impressive.",mistake:"It was a big mistake to leave early.",neighbour:"Our neighbour has a very friendly dog.",parcel:"A parcel arrived for you this morning.",pleasant:"We had a pleasant walk along the river.",recipe:"This recipe needs only three ingredients.",salary:"He gets his salary at the end of the month.",shout:"Please do not shout in the library.",strange:"The house was quiet and a little strange.",ancient:"We visited an ancient temple on the island.",support:"My family always supports me.",improve:"I want to improve my English this year.",request:"He made a request for a day off.",explore:"We plan to explore the old town tomorrow.",respond:"Please respond to my email today.",suggest:"I suggest we leave before it gets dark.",abroad:"She studied abroad for two years.",access:"Students have free access to the library.",adapt:"Animals adapt to changes in their environment.",admit:"He had to admit that he was wrong.",afford:"We cannot afford a new car this year.",announce:"The airline will announce the delay soon.",appeal:"The charity made an appeal for help.",attitude:"A positive attitude can change your day.",aware:"Are you aware of the new rules?",belief:"Her belief in hard work never changed.",branch:"A bird sat on the branch of the tree.",category:"This book belongs to the travel category.",character:"The main character in the film is very brave.",collapse:"The old bridge could collapse in the storm.",comment:"She left a nice comment under my photo.",complain:"Customers complain about the slow service.",consider:"Please consider my offer carefully.",convince:"I could not convince him to stay.",crisis:"The country is facing an economic crisis.",custom:"It is a custom to remove your shoes at home.",declare:"The judge will declare the winner today.",defend:"Soldiers defend their country.",depend:"It will depend on the weather.",destroy:"The fire destroyed the whole building.",disappear:"My keys seem to disappear every morning.",distant:"We could hear a distant sound of music.",doubt:"I have no doubt that you will pass.",embarrass:"Do not embarrass me in front of my friends.",encourage:"Teachers should encourage students to ask questions.",environment:"We must protect the environment.",exhausted:"After the long walk, we were exhausted.",familiar:"Her face looks familiar to me.",generous:"He is generous and often helps others.",guilty:"I felt guilty about forgetting her birthday.",imagine:"Imagine living on a small island.",include:"The price does include breakfast.",influence:"Parents have a strong influence on children.",install:"Can you install this app on my phone?",launch:"The company will launch a new product in May.",neglect:"Do not neglect your health.",occur:"Accidents often occur on wet roads.",permit:"The school does not permit phones in class.",procedure:"The procedure takes about ten minutes.",evidence:"The police found new evidence at the scene.",flexible:"My job has flexible working hours.",ambition:"Her ambition is to become a doctor.",generate:"Solar panels generate clean energy.",tendency:"He has a tendency to talk too fast.",estimate:"I estimate the trip will take three hours.",conclude:"The study concluded that sleep improves memory.",abandon:"They had to abandon the car in the snow.",accommodate:"The hotel can accommodate two hundred guests.",acknowledge:"He did not acknowledge his mistake.",adequate:"The room was small but adequate.",alternative:"Is there an alternative to this plan?",apparent:"It was apparent that she was upset.",arbitrary:"The rules seemed arbitrary and unfair.",assess:"Teachers assess students every term.",assure:"I assure you that everything is fine.",bias:"The article showed a clear bias against the team.",campaign:"They started a campaign to save the forest.",cautious:"Be cautious when you cross the river.",collaborate:"The two schools collaborate on many projects.",compensate:"The airline will compensate passengers for the delay.",comprehensive:"We offer a comprehensive guide to the city.",considerable:"It took a considerable amount of time.",constant:"The constant noise made it hard to sleep.",controversy:"The decision caused a lot of controversy.",credible:"The witness seemed honest and credible.",crucial:"Sleep is crucial for good health.",demonstrate:"The teacher will demonstrate how the machine works.",dilemma:"She faced a dilemma between work and family.",discourage:"Bad weather can discourage people from travelling.",distinct:"The two brothers have distinct personalities.",dominate:"One company dominates the market.",eliminate:"We must eliminate waste in the kitchen.",emphasis:"The school puts great emphasis on reading.",encounter:"We encounter many problems when we travel.",ensure:"Please ensure that the door is locked.",exceed:"The cost must not exceed one hundred euros.",exploit:"Some companies exploit cheap labour.",feasible:"Is it feasible to finish this by Friday?",formulate:"Scientists formulate a theory first.",gradual:"There has been a gradual change in the climate.",hypothesis:"The experiment tested her hypothesis.",illustrate:"Let me illustrate this with an example.",imply:"His silence seemed to imply that he agreed.",indicate:"The sign indicates the way to the station.",innovation:"The company is famous for its innovation.",integrate:"New students find it easy to integrate here.",isolate:"Doctors isolate patients who have the virus.",maintain:"It is hard to maintain a healthy diet.",negotiate:"The two sides will negotiate a new deal.",inevitable:"Change is inevitable in life.",resilient:"Children are often more resilient than adults.",ambiguous:"The instructions were ambiguous and confusing.",mitigate:"Trees help to mitigate the effects of heat.",plausible:"His story sounded plausible to everyone.",diligent:"She is a diligent student who never misses class.",deteriorate:"His health began to deteriorate last winter.",abstract:"Love is an abstract idea.",advocate:"Doctors advocate regular exercise.",albeit:"He finished the race, albeit very slowly.",analogy:"The teacher used an analogy to explain the idea.",arbitrate:"A neutral judge will arbitrate the dispute.",assertive:"You need to be more assertive in meetings.",autonomy:"Teachers need autonomy in their classrooms.",bureaucracy:"Getting a permit meant dealing with endless bureaucracy.",coincide:"Her holiday will coincide with my birthday.",compatible:"This charger is not compatible with my phone.",compromise:"After a long talk, they reached a compromise.",condemn:"Leaders around the world condemn the attack.",conscientious:"A conscientious worker checks every detail.",contemplate:"He sat quietly to contemplate his future.",controversial:"It was a controversial decision.",credibility:"The scandal damaged the politician's credibility.",deduce:"From the clues, we can deduce who did it.",detrimental:"Too much sugar is detrimental to your health.",disparity:"There is a big disparity between rich and poor areas.",disrupt:"Heavy snow can disrupt train services.",dubious:"I am dubious about his promises.",elusive:"Success remained elusive for the young team.",endorse:"The mayor will endorse the new plan.",equilibrium:"The body tries to keep its equilibrium.",explicit:"She gave explicit instructions for the task.",fallacy:"It is a fallacy that money brings happiness.",formidable:"They faced a formidable opponent in the final.",hinder:"Bad weather may hinder the rescue work.",implicit:"There was an implicit threat in his words.",inadvertent:"The error was inadvertent, not deliberate.",indigenous:"The museum shows indigenous art and culture.",ingenious:"It was an ingenious solution to a hard problem.",integrity:"A judge must act with integrity.",intuition:"My intuition told me something was wrong.",lucrative:"Selling software can be a lucrative business.",marginal:"There was only a marginal improvement in sales.",notorious:"The city is notorious for its heavy traffic.",obsolete:"Floppy disks are now obsolete.",perceive:"Many people perceive him as shy.",precedent:"The ruling set a precedent for future cases.",rational:"Let us make a rational decision, not an emotional one.",reconcile:"It is hard to reconcile these two views.",subtle:"There is a subtle difference between the two words."};
 function hintFor(w){
   const k=w.toLowerCase(),e=EX[k];
   if(e)return 'Örnek cümle: '+e.replace(new RegExp('\\b'+k+'\\w*','ig'),'____');
@@ -854,8 +861,8 @@ function aProfile(){
   const P=prof,n=P.words_solved||0,t=n+(P.words_failed||0),nb=BD.filter(b=>b[2](P)).length;
   const ds=P.last_daily&&P.last_daily>=dStr(dayNum()-1)?P.daily_streak:0;
   const S=(a,b)=>'<div class="sc"><b>'+a+'</b><span>'+b+'</span></div>';
-  panel('<div style="text-align:center">'+av(P.avatar,96)+'<h2 style="margin:8px 0 2px">'+esc(P.username)+'</h2><p>'+titleOf(P)+', '+n+' kelime</p><div style="display:flex;gap:8px;justify-content:center;margin-bottom:14px"><button class="sbtn" id="bb">Rozetler ('+nb+'/'+BD.length+')</button><button class="sbtn" id="tb2">Unvan ilerlemesi</button></div></div><div class="sg">'+S(P.best_score,'Seri rekoru')+S(P.best_streak,'En uzun seri')+S(t?Math.round(n/t*100)+'%':'-','Doğruluk')+S(n?(P.total_guesses/n).toFixed(1):'-','Ortalama tahmin')+S(P.first_try||0,'İlk denemede')+S(P.hints_used||0,'İpucu kullanımı')+S(P.total_points||0,'Toplam puan')+S(P.streak_runs||0,'Seri oyunu')+S((P.daily_wins||0)+'/'+(P.daily_played||0),'Günlük kazanılan')+S(ds+' (en iyi '+(P.best_daily_streak||0)+')','Günlük seri')+'</div><input id="pf" type="file" accept="image/*" hidden><div style="height:12px"></div>'+btn('pp','Profil fotoğrafı seç')+btn('lo','Çıkış yap')+btn('ob','Ana menü'));
-  $('bb').onclick=aBadges;
+  panel('<div style="text-align:center">'+av(P.avatar,96)+'<h2 style="margin:8px 0 2px">'+esc(P.username)+'</h2><p>'+titleOf(P)+', '+n+' kelime</p><div style="display:flex;gap:8px;justify-content:center;margin-bottom:14px"><button class="sbtn" id="bb">Rozetler ('+nb+'/'+BD.length+')</button><button class="sbtn" id="tb2">Unvan ilerlemesi</button></div></div><div class="sg">'+S(P.best_score,'Seri rekoru')+S(P.best_streak,'En uzun seri')+S(t?Math.round(n/t*100)+'%':'-','Doğruluk')+S(n?(P.total_guesses/n).toFixed(1):'-','Ortalama tahmin')+S(P.first_try||0,'İlk denemede')+S(P.hints_used||0,'İpucu kullanımı')+S(P.total_points||0,'Toplam puan')+S(P.streak_runs||0,'Seri oyunu')+S((P.daily_wins||0)+'/'+(P.daily_played||0),'Günlük kazanılan')+S(ds+' (en iyi '+(P.best_daily_streak||0)+')','Günlük seri')+'</div><input id="pf" type="file" accept="image/*" hidden><div style="height:12px"></div>'+btn('nb','Kelime defterim')+btn('pp','Profil fotoğrafı seç')+btn('lo','Çıkış yap')+btn('ob','Ana menü'));
+  $('bb').onclick=aBadges;$('nb').onclick=aBook;
   $('tb2').onclick=aTitles;
   $('ob').onclick=()=>oExit();
   $('pp').onclick=()=>$('pf').click();
@@ -1008,7 +1015,7 @@ async function srvGuess(gs){
   guesses.push({w:gs,s});kmark(gs,s);
   cur=Array(word.length).fill('');sel=-1;$('res').textContent='';
   if(!d.done){sfx('tick');draw();return}
-  word=d.ans.toUpperCase();def=d.def;
+  word=d.ans.toUpperCase();def=d.def;SRVEX=d.ex||'';
   let m;
   if(mode==='daily')m=d.win?'Doğru!':'Haklar bitti. Cevap: <b>'+word+'</b>';
   else{
@@ -1079,7 +1086,7 @@ function cfAsk(t,y,n,fy,fn){
 const _bk=$('back').onclick;
 function exitMsg(){return mode==='online'?'Maçtan çıkarsan oyundan düşersin.':mode==='streak'?'Çıkarsan bu seri biter, puanın kaydedilir.':mode==='daily'?'Günlük oyun kaldığın yerden devam eder.':''}
 $('back').onclick=()=>{if(!$('game').hidden&&!over&&mode!=='practice')cfAsk('Gerçekten çıkmak istiyor musun? '+exitMsg(),'Çık','Devam et',_bk);else _bk()};
-function goBack(){
+function goBack(){if(!$('wv').hidden){$('wv').hidden=true;return}
   if(!$('cf').hidden){$('cfn').click();return}
   if(!$('game').hidden){$('back').click();return}
   if(!$('menu').hidden){$('toHome').click();return}
@@ -1087,17 +1094,17 @@ function goBack(){
 }
 history.replaceState({vb:0},'');history.pushState({vb:1},'');
 addEventListener('popstate',()=>{
-  const sub=!$('cf').hidden||!$('game').hidden||!$('menu').hidden||(!$('online').hidden&&prof);
+  const sub=!$('wv').hidden||!$('cf').hidden||!$('game').hidden||!$('menu').hidden||(!$('online').hidden&&prof);
   if(sub){history.pushState({vb:1},'');goBack();return}
   toast('Çıkmak için tekrar geri bas');
   setTimeout(()=>history.pushState({vb:1},''),2000);
 });
-addEventListener('keydown',e=>{if(e.key==='Escape'&&(!$('cf').hidden||!$('game').hidden||!$('menu').hidden||!$('online').hidden))goBack()});
+addEventListener('keydown',e=>{if(e.key==='Escape'&&(!$('wv').hidden||!$('cf').hidden||!$('game').hidden||!$('menu').hidden||!$('online').hidden))goBack()});
 addEventListener('beforeunload',e=>{if(!$('game').hidden&&!over&&mode!=='practice'){e.preventDefault();e.returnValue=''}});
 async function tick(){
   if(!sb||!prof||document.hidden)return;
   const r=await sb.rpc('app_tick');if(r.error)return;
-  const d=r.data,b=$('fb');
+  const d=r.data,b=$('fb');if(!window._ch){window._ch=1;champCheck()}
   if(b){b.textContent=d.fr;b.hidden=!(d.fr>0)}
   if(d.inv&&d.inv.id!==invSeen&&$('game').hidden&&$('cf').hidden){
     invSeen=d.inv.id;sfx('badge');
@@ -1148,6 +1155,48 @@ async function oRandom(){
   };
   await step();
   if(mmOn)mmT=setInterval(step,3000);
+}
+</script>
+<script>
+let sess=[],SRVEX='';
+const CB=()=>{try{return localStorage.getItem('ka_cb')==='1'}catch(e){return false}};
+function applyCB(){document.documentElement.dataset.cb=CB()?'1':''}
+applyCB();
+function speak(w){try{const u=new SpeechSynthesisUtterance(String(w).toLowerCase());u.lang='en-US';u.rate=.9;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){toast('Bu tarayıcı sesli okumayı desteklemiyor.')}}
+function hiEx(ex,w){return esc(ex).replace(new RegExp('\\b('+w.toLowerCase()+'\\w*)','ig'),'<b>$1</b>')}
+function bookGet(){try{return JSON.parse(localStorage.getItem('ka_book'))||[]}catch(e){return[]}}
+function bookSet(b){try{localStorage.setItem('ka_book',JSON.stringify(b.slice(0,200)))}catch(e){}}
+function bookAdd(w,d,ex){const b=bookGet(),i=b.findIndex(x=>x.w===w);if(i>=0){b[i].n=(b[i].n||1)+1;if(ex)b[i].ex=ex}else b.unshift({w,d,ex,n:1});bookSet(b)}
+// Her kelime bitince: oyun listesine ekle, bilinmediyse deftere de yaz
+function noteWord(){
+  if(!guesses.length||word.indexOf('?')>=0){SRVEX='';return}
+  const w=word,win=guesses[guesses.length-1].w===w,ex=SRVEX||EX[w.toLowerCase()]||'';SRVEX='';
+  if(!sess.some(x=>x.w===w))sess.push({w,def,ex,win});
+  if(!win)bookAdd(w,def,ex);
+}
+document.body.insertAdjacentHTML('beforeend','<div id="wv" hidden><div class="wvi"><p id="wvt" style="font-weight:700;font-size:18px"></p><div id="wvl"></div><button class="lvl" id="wvc" style="justify-content:center">Kapat</button></div></div>');
+$('wvc').onclick=()=>{$('wv').hidden=true};
+function wrow(x,rm){return '<div class="wvr"><div style="display:flex;justify-content:space-between;align-items:center"><b class="w">'+esc(x.w)+(x.win===undefined?'':(x.win?' ✓':' ✗'))+'</b><span><button class="sbtn" data-sp="'+esc(x.w)+'">🔊</button>'+(rm?' <button class="sbtn" data-rm="'+esc(x.w)+'">Sil</button>':'')+'</span></div><small>'+esc(x.def||x.d||'')+'.</small>'+(x.ex?'<small>“'+hiEx(x.ex,x.w)+'”</small>':'')+'</div>'}
+function wopen(t,h){$('wvt').textContent=t;$('wvl').innerHTML=h;$('wv').hidden=false;$('wv').scrollTop=0;document.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>speak(b.dataset.sp))}
+function showWords(){wopen('Bu oyundaki kelimeler ('+sess.length+')',sess.length?sess.map(x=>wrow(x)).join(''):'<p>Henüz kelime yok.</p>')}
+function aBook(){
+  const b=bookGet();
+  wopen('Kelime defterim ('+b.length+')',b.length?b.map(x=>wrow({w:x.w,d:x.d,ex:x.ex},1)).join(''):'<p>Bilemediğin kelimeler burada birikir.</p>');
+  document.querySelectorAll('[data-rm]').forEach(bt=>bt.onclick=()=>{bookSet(bookGet().filter(x=>x.w!==bt.dataset.rm));aBook()});
+}
+function shareRes(){
+  const win=guesses.length&&guesses[guesses.length-1].w===word,cb=CB(),m={g:cb?'🟦':'🟩',o:'🟧',r:cb?'⬛':'🟥'};
+  const t='Vocaboo '+(mode==='daily'?'Günlük '+dStr(dayNum())+' ':'')+(win?guesses.length:'X')+'/'+tries+'\n'+guesses.map(g=>g.s.map(c=>m[c]).join('')).join('\n');
+  if(navigator.share){navigator.share({text:t}).catch(()=>{})}else{try{navigator.clipboard.writeText(t);toast('Sonuç kopyalandı')}catch(e){toast('Kopyalanamadı')}}
+}
+// Haftalık şampiyon ekranı: her yeni haftanın ilk açılışında geçen haftanın ilk 3'ü
+async function champCheck(){
+  const wk=dStr(dayNum()-((dayNum()+3)%7));let seen=null;
+  try{seen=localStorage.getItem('ka_champ');localStorage.setItem('ka_champ',wk)}catch(e){}
+  if(seen===null||seen===wk)return;
+  const r=await sb.from('weekly_scores').select('best_score,profiles!inner(username)').eq('week',dStr(dayNum()-((dayNum()+3)%7)-7)).eq('profiles.cls',true).gt('best_score',0).order('best_score',{ascending:false}).limit(3);
+  const d=r.data||[];if(!d.length)return;
+  cfAsk('Geçen haftanın şampiyonları\n'+d.map((x,i)=>['🥇','🥈','🥉'][i]+' '+x.profiles.username+', '+x.best_score+' puan').join('\n'),'Tamam','Tüm tablo',null,()=>aBoard('last'));
 }
 </script>
 </body>
