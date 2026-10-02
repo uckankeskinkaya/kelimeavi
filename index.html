@@ -2,6 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net/npm/@supabase/; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://bzijkiljqlruwupqwtcm.supabase.co wss://bzijkiljqlruwupqwtcm.supabase.co; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Vocaboo</title>
 <link rel="icon" href="logo.png" type="image/png">
@@ -183,11 +184,15 @@ h1{font-size:18px;margin:0;font-weight:800;letter-spacing:-.3px}
 .mvs{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%}
 .mv{display:flex;align-items:center;gap:8px;min-width:0;flex:1}.mv.r{flex-direction:row-reverse;text-align:right}
 .mv b{display:block;font-size:14px;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mv span{font-size:12px}
+#hr{display:flex;align-items:center;gap:8px}
+#fbtn{display:none;position:relative;width:38px;height:34px;border-radius:999px;border:1px solid var(--line);background:var(--panel);font-size:16px}
+#app:has(#home:not([hidden])) #fbtn{display:grid;place-items:center}
+#fb{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;border-radius:8px;background:var(--r);color:#fff;font-size:10px;font-style:normal;font-weight:800;display:grid;place-items:center;padding:0 4px}
 </style>
 </head>
 <body>
 <div id="app">
-  <header><div class="brand"><span id="mark" class="mark"><i style="background:var(--g)"></i><i style="background:var(--g)"></i><i style="background:var(--o)"></i><i style="background:var(--r)"></i><i style="background:var(--g)"></i><i style="background:var(--g)"></i></span><img id="logo" alt="" hidden><h1>vocaboo</h1></div><span id="score">0 puan</span></header>
+  <header><div class="brand"><span id="mark" class="mark"><i style="background:var(--g)"></i><i style="background:var(--g)"></i><i style="background:var(--o)"></i><i style="background:var(--r)"></i><i style="background:var(--g)"></i><i style="background:var(--g)"></i></span><img id="logo" alt="" hidden><h1>vocaboo</h1></div><span id="hr"><button id="fbtn" aria-label="Arkadaşlar">👥<i id="fb" hidden></i></button><span id="score">0 puan</span></span></header>
   <div id="home" hidden>
     <div class="greet"><h2 id="hi">Hoş geldin</h2><p>Bugün hangi kelimeyi avlıyoruz?</p></div>
     <div class="rules"><span style="--c:var(--g)">Yeri doğru</span><span style="--c:var(--o)">Yeri yanlış</span><span style="--c:var(--r)">Kelimede yok</span></div>
@@ -554,14 +559,14 @@ async function loadProf(){
   const u=await sb.auth.getUser();
   if(!u.data||!u.data.user){prof=null;rHome();return}
   const r=await sb.from('profiles').select('*').eq('id',u.data.user.id).single();
-  prof=r.data||null;rHome();checkBadges();
+  prof=r.data||null;rHome();checkBadges();fbadge();
 }
 function panel(h){$('home').hidden=true;$('online').hidden=false;on(h)}
 function noSb(){panel('<p>Bu özellik için Supabase ayarı gerekli.</p>'+btn('ob','Ana menü'));$('ob').onclick=()=>oExit()}
 
 function aAuth(msg){
   if(!sb){noSb();return}
-  panel(heroHTML()+(msg?'<p><b>'+esc(msg)+'</b></p>':'')+'<p>Kullanıcı adı (3-16 karakter: a-z, 0-9, _)</p><input id="au" maxlength="16" autocapitalize="none" autocomplete="username" style="'+SEL+'"><p>Şifre (en az 8 karakter)</p><input id="ap" type="password" autocomplete="current-password" style="'+SEL+'"><p id="ae" style="color:var(--r)"></p>'+btn('al','Giriş yap')+btn('as','Kayıt ol')+'<p>Mail ya da telefon istenmez. Şifreni unutursan kurtarma yolu yoktur.</p>'+(prof?btn('ob','Ana menü'):''));
+  panel(heroHTML()+(msg?'<p><b>'+esc(msg)+'</b></p>':'')+'<p>Kullanıcı adı (3-16 karakter: a-z, 0-9, _)</p><input id="au" maxlength="16" autocapitalize="none" autocomplete="username" style="'+SEL+'"><p>Şifre (en az 8 karakter)</p><input id="ap" type="password" autocomplete="current-password" style="'+SEL+'"><p>Sınıf kodu (sınıftansan gir, dışarıdansan boş bırak)</p><input id="ac" maxlength="40" autocapitalize="none" autocomplete="off" style="'+SEL+'"><p id="ae" style="color:var(--r)"></p>'+btn('al','Giriş yap')+btn('as','Kayıt ol')+'<p>Mail ya da telefon istenmez. Şifreni unutursan kurtarma yolu yoktur.</p>'+(prof?btn('ob','Ana menü'):''));
   if(prof)$('ob').onclick=()=>oExit();
   $('al').onclick=()=>aGo(false);
   $('as').onclick=()=>aGo(true);
@@ -572,8 +577,8 @@ async function aGo(reg){
   if(p.length<8)return err('Şifre en az 8 karakter olmalı.');
   err('Bekle...');
   const em=u+MD;
-  const r=reg?await sb.auth.signUp({email:em,password:p,options:{data:{username:u}}}):await sb.auth.signInWithPassword({email:em,password:p});
-  if(r.error)return err(reg?(/registered|exists/i.test(r.error.message)?'Bu kullanıcı adı alınmış.':'Kayıt yapılamadı: '+r.error.message):'Kullanıcı adı ya da şifre yanlış.');
+  const r=reg?await sb.auth.signUp({email:em,password:p,options:{data:{username:u,code:($('ac').value||'').trim()}}}):await sb.auth.signInWithPassword({email:em,password:p});
+  if(r.error)return err(reg?(/registered|exists/i.test(r.error.message)?'Bu kullanıcı adı alınmış.':'Kayıt yapılamadı. Sınıf kodunu ve kullanıcı adını kontrol et.'):'Kullanıcı adı ya da şifre yanlış.');
   if(!r.data.session)return err('Hesap açıldı ama oturum başlamadı. Supabase ayarlarında Confirm email kapalı olmalı.');
   await loadProf();
   if(!prof)return err('Profil oluşturulamadı. SQL kurulumunu kontrol et.');
@@ -702,7 +707,7 @@ async function aBoard(col){
   col=col||'best_score';
   if(!sb){noSb();return}
   panel('<p>Yükleniyor...</p>');
-  const r=await sb.from('profiles').select('username,avatar,best_score,best_daily_streak').gt(col,0).order(col,{ascending:false}).limit(20);
+  const r=await sb.from('profiles').select('username,avatar,best_score,best_daily_streak').eq('cls',true).gt(col,0).order(col,{ascending:false}).limit(20);
   if(r.error){panel('<p>Skor tablosu yüklenemedi.</p>'+btn('ob','Ana menü'));$('ob').onclick=()=>oExit();return}
   const d=r.data||[],a=col==='best_score';
   panel('<div style="display:flex;gap:8px;margin-bottom:10px"><button class="lvl" id="t1" style="margin:0;justify-content:center'+(a?';border-color:var(--g)':'')+'">Seri rekoru</button><button class="lvl" id="t2" style="margin:0;justify-content:center'+(a?'':';border-color:var(--g)')+'">Günlük seri</button></div>'+(d.length?d.map((x,i)=>'<div class="pl"><span style="display:flex;align-items:center;gap:8px">'+(i+1)+'. '+av(x.avatar,28)+esc(x.username)+(prof&&x.username===prof.username?' (sen)':'')+'</span><b>'+x[col]+'</b></div>').join(''):'<p>Henüz kayıt yok.</p>')+btn('ob','Ana menü'));
@@ -790,10 +795,10 @@ async function aBoard(tab,col){
   const wk=dStr(dayNum()-((dayNum()+3)%7));
   let d=[],err=false;
   if(tab==='week'){
-    const r=await sb.from('weekly_scores').select('best_score,profiles(username,avatar)').eq('week',wk).gt('best_score',0).order('best_score',{ascending:false}).limit(20);
+    const r=await sb.from('weekly_scores').select('best_score,profiles!inner(username,avatar)').eq('week',wk).eq('profiles.cls',true).gt('best_score',0).order('best_score',{ascending:false}).limit(20);
     err=!!r.error;d=(r.data||[]).map(x=>({u:x.profiles&&x.profiles.username,a:x.profiles&&x.profiles.avatar,v:x.best_score}));
   }else{
-    const r=await sb.from('profiles').select('username,avatar,best_score,best_daily_streak').gt(col,0).order(col,{ascending:false}).limit(20);
+    const r=await sb.from('profiles').select('username,avatar,best_score,best_daily_streak').eq('cls',true).gt(col,0).order(col,{ascending:false}).limit(20);
     err=!!r.error;d=(r.data||[]).map(x=>({u:x.username,a:x.avatar,v:x[col]}));
   }
   if(err){panel('<p>Skor tablosu yüklenemedi.</p>'+btn('ob','Ana menü'));$('ob').onclick=()=>oExit();return}
@@ -809,7 +814,7 @@ const EX={travel:"We like to travel by train in the summer.",ticket:"I bought a 
 function hintFor(w){
   const k=w.toLowerCase(),e=EX[k];
   if(e)return 'Örnek cümle: '+e.replace(new RegExp('\\b'+k+'\\w*','ig'),'____');
-  return 'İpucu: '+(HT[k]||('ilk harf '+w[0]));
+  return 'İpucu: ilk harf '+w[0]+', '+w.length+' harf';
 }
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 
@@ -1011,6 +1016,48 @@ async function srvGuess(gs){
   sfx(d.win?'win':'lose');loadProf();
   finish(m);draw();
 }
+</script>
+<script>
+async function fbadge(){
+  const b=$('fb');if(!b||!sb||!prof)return;
+  const r=await sb.rpc('friend_count'),n=r.error?0:(r.data||0);
+  b.textContent=n;b.hidden=!(n>0);
+}
+const FE={'kod yok':'Bu kodla kimse bulunamadı.','kendi kodun':'Bu senin kendi kodun.','zaten':'Zaten istek var veya arkadaşsınız.','limit':'Çok fazla deneme, bir saat sonra tekrar dene.','cok istek':'Bekleyen çok isteğin var.'};
+async function aFriends(tab){
+  if(!sb||!prof){aAuth('Arkadaşlar için giriş yap');return}
+  tab=tab||'f';panel('<p>Yükleniyor...</p>');
+  const tb=(id,t,on)=>'<button class="lvl" id="'+id+'" style="margin:0;justify-content:center'+(on?';border-color:var(--g)':'')+'">'+t+'</button>';
+  const hd='<div style="display:flex;gap:8px;margin-bottom:10px">'+tb('ft1','Arkadaşlar',tab==='f')+tb('ft2','Sınıf',tab==='c')+'</div>';
+  const row=(x,ex)=>'<div class="pl"><span style="display:flex;align-items:center;gap:8px;min-width:0">'+av(x.im,32)+'<span><b>'+esc(x.u)+(prof.username===x.u?' (sen)':'')+'</b><br><small style="color:var(--dim)">'+esc(x.t||'')+'</small></span></span>'+(ex||'')+'</div>';
+  const bar=()=>{$('ob').onclick=()=>oExit();$('ft1').onclick=()=>aFriends('f');$('ft2').onclick=()=>aFriends('c')};
+  if(tab==='c'){
+    const r=await sb.from('profiles').select('username,avatar,best_score,words_solved').eq('cls',true).order('best_score',{ascending:false}).limit(100);
+    const d=r.data||[];
+    panel(hd+'<p>Sınıftakiler ('+d.length+')</p>'+d.map(x=>row({u:x.username,im:x.avatar,t:titleOf({words_solved:x.words_solved})+', rekor '+x.best_score})).join('')+btn('ob','Ana menü'));
+    bar();return;
+  }
+  const r=await sb.rpc('friend_list');
+  if(r.error){panel(hd+'<p>Yüklenemedi, tekrar dene.</p>'+btn('ob','Ana menü'));bar();return}
+  const d=r.data,cd=d.code.slice(0,4)+'-'+d.code.slice(4);
+  panel(hd+'<div class="pl"><span>Kodun: <b style="letter-spacing:2px">'+esc(cd)+'</b></span><button class="sbtn" id="fcp">Kopyala</button></div><input id="fcode" maxlength="12" autocomplete="off" placeholder="Arkadaş kodu" style="'+SEL+';text-transform:uppercase">'+btn('fadd','Arkadaş ekle')
+    +(d.incoming.length?'<p>İstekler</p>'+d.incoming.map(x=>row(x,'<span><button class="sbtn" data-a="'+esc(x.id)+'">Kabul</button> <button class="sbtn" data-r="'+esc(x.id)+'">Reddet</button></span>')).join(''):'')
+    +'<p>Arkadaşların ('+d.friends.length+')</p>'+(d.friends.length?d.friends.map(x=>row({u:x.u,im:x.im,t:titleOf({words_solved:x.ws})+', rekor '+x.bs+(x.c?', sınıf':'')},'<button class="sbtn" data-x="'+esc(x.id)+'">Sil</button>')).join(''):'<p>Henüz arkadaşın yok. Kodunu paylaş veya arkadaşının kodunu gir.</p>')+btn('ob','Ana menü'));
+  bar();
+  $('fcp').onclick=()=>{try{navigator.clipboard.writeText(d.code)}catch(e){}toast('Kod kopyalandı')};
+  $('fadd').onclick=async()=>{
+    const c=$('fcode').value.trim();if(!c)return;
+    const q=await sb.rpc('friend_add',{_c:c});
+    if(q.error){toast('Bağlantı hatası');return}
+    if(q.data.err){toast(FE[q.data.err]||'Eklenemedi');return}
+    toast((q.data.ok==='kabul'?'Artık arkadaşsınız: ':'İstek gönderildi: ')+q.data.n);aFriends('f');
+  };
+  const act=(sel,key,fn)=>document.querySelectorAll(sel).forEach(b=>b.onclick=async()=>{await fn(b.dataset[key]);aFriends('f');fbadge()});
+  act('[data-a]','a',id=>sb.rpc('friend_respond',{_id:id,_acc:true}));
+  act('[data-r]','r',id=>sb.rpc('friend_respond',{_id:id,_acc:false}));
+  act('[data-x]','x',id=>sb.rpc('friend_remove',{_id:id}));
+}
+$('fbtn').onclick=()=>aFriends('f');
 </script>
 </body>
 </html>
