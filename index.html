@@ -602,9 +602,9 @@ async function aGo(reg){
 function aProfile(){
   if(!sb){noSb();return}
   if(!prof){aAuth();return}
-  panel('<div style="text-align:center">'+av(prof.avatar,96)+'<h2 style="margin:8px 0 10px">'+esc(prof.username)+'</h2></div><div class="pl"><span>Rekor (Seri Modu)</span><b>'+prof.best_score+'</b></div><div class="pl"><span>En uzun seri</span><b>'+prof.best_streak+' kelime</b></div><input id="pf" type="file" accept="image/*" hidden>'+btn('nb','Kelime defterim')+btn('pp','Profil fotoğrafı seç')+btn('lo','Çıkış yap')+btn('ob','Ana menü'));
+  panel('<div style="text-align:center">'+av(prof.avatar,96)+'<h2 style="margin:8px 0 10px">'+esc(prof.username)+'</h2></div><div class="pl"><span>Rekor (Seri Modu)</span><b>'+prof.best_score+'</b></div><div class="pl"><span>En uzun seri</span><b>'+prof.best_streak+' kelime</b></div><input id="pf" type="file" accept="image/*" hidden>'+btn('nb','Kelime defterim')+btn('pp','Fotoğraf yükle')+btn('pv','Hazır avatar seç')+btn('lo','Çıkış yap')+btn('ob','Ana menü'));
   $('ob').onclick=()=>oExit();
-  $('pp').onclick=()=>$('pf').click();
+  $('pp').onclick=()=>$('pf').click();$('pv').onclick=aAvatar;
   $('pf').onchange=aPhoto;
   $('lo').onclick=async()=>{await sb.auth.signOut();prof=null;rHome();aAuth()};
 }
@@ -710,9 +710,9 @@ function aProfile(){
   const lo=k?T[k-1][0]:0,hi=T[k][0],pct=hi>=1e9?100:Math.round((n-lo)/(hi-lo)*100);
   const ds=P.last_daily&&P.last_daily>=dStr(dayNum()-1)?P.daily_streak:0;
   const S=(a,b)=>'<div class="sc"><b>'+a+'</b><span>'+b+'</span></div>';
-  panel('<div style="text-align:center">'+av(P.avatar,96)+'<h2 style="margin:8px 0 2px">'+esc(P.username)+'</h2><p>'+T[k][1]+', '+n+' kelime</p><div style="height:8px;border-radius:4px;background:var(--key);margin:0 20px 14px"><div style="height:8px;border-radius:4px;background:var(--g);width:'+pct+'%"></div></div></div><div class="sg">'+S(P.best_score,'Seri rekoru')+S(P.best_streak,'En uzun seri')+S(t?Math.round(n/t*100)+'%':'-','Doğruluk')+S(n?(P.total_guesses/n).toFixed(1):'-','Ortalama tahmin')+S(P.first_try||0,'İlk denemede')+S(P.hints_used||0,'İpucu kullanımı')+S(P.total_points||0,'Toplam puan')+S(P.streak_runs||0,'Seri oyunu')+S((P.daily_wins||0)+'/'+(P.daily_played||0),'Günlük kazanılan')+S(ds+' (en iyi '+(P.best_daily_streak||0)+')','Günlük seri')+'</div>'+bdHTML(P)+'<input id="pf" type="file" accept="image/*" hidden><div style="height:12px"></div>'+btn('nb','Kelime defterim')+btn('pp','Profil fotoğrafı seç')+btn('lo','Çıkış yap')+btn('ob','Ana menü'));
+  panel('<div style="text-align:center">'+av(P.avatar,96)+'<h2 style="margin:8px 0 2px">'+esc(P.username)+'</h2><p>'+T[k][1]+', '+n+' kelime</p><div style="height:8px;border-radius:4px;background:var(--key);margin:0 20px 14px"><div style="height:8px;border-radius:4px;background:var(--g);width:'+pct+'%"></div></div></div><div class="sg">'+S(P.best_score,'Seri rekoru')+S(P.best_streak,'En uzun seri')+S(t?Math.round(n/t*100)+'%':'-','Doğruluk')+S(n?(P.total_guesses/n).toFixed(1):'-','Ortalama tahmin')+S(P.first_try||0,'İlk denemede')+S(P.hints_used||0,'İpucu kullanımı')+S(P.total_points||0,'Toplam puan')+S(P.streak_runs||0,'Seri oyunu')+S((P.daily_wins||0)+'/'+(P.daily_played||0),'Günlük kazanılan')+S(ds+' (en iyi '+(P.best_daily_streak||0)+')','Günlük seri')+'</div>'+bdHTML(P)+'<input id="pf" type="file" accept="image/*" hidden><div style="height:12px"></div>'+btn('nb','Kelime defterim')+btn('pp','Fotoğraf yükle')+btn('pv','Hazır avatar seç')+btn('lo','Çıkış yap')+btn('ob','Ana menü'));
   $('ob').onclick=()=>oExit();
-  $('pp').onclick=()=>$('pf').click();
+  $('pp').onclick=()=>$('pf').click();$('pv').onclick=aAvatar;
   $('pf').onchange=aPhoto;
   $('lo').onclick=async()=>{await flushStats();await sb.auth.signOut();prof=null;rHome();aAuth()};
 }
@@ -861,11 +861,11 @@ function aProfile(){
   const P=prof,n=P.words_solved||0,t=n+(P.words_failed||0),nb=BD.filter(b=>b[2](P)).length;
   const ds=P.last_daily&&P.last_daily>=dStr(dayNum()-1)?P.daily_streak:0;
   const S=(a,b)=>'<div class="sc"><b>'+a+'</b><span>'+b+'</span></div>';
-  panel('<div style="text-align:center">'+av(P.avatar,96)+'<h2 style="margin:8px 0 2px">'+esc(P.username)+'</h2><p>'+titleOf(P)+', '+n+' kelime</p><div style="display:flex;gap:8px;justify-content:center;margin-bottom:14px"><button class="sbtn" id="bb">Rozetler ('+nb+'/'+BD.length+')</button><button class="sbtn" id="tb2">Unvan ilerlemesi</button></div></div><div class="sg">'+S(P.best_score,'Seri rekoru')+S(P.best_streak,'En uzun seri')+S(t?Math.round(n/t*100)+'%':'-','Doğruluk')+S(n?(P.total_guesses/n).toFixed(1):'-','Ortalama tahmin')+S(P.first_try||0,'İlk denemede')+S(P.hints_used||0,'İpucu kullanımı')+S(P.total_points||0,'Toplam puan')+S(P.streak_runs||0,'Seri oyunu')+S((P.daily_wins||0)+'/'+(P.daily_played||0),'Günlük kazanılan')+S(ds+' (en iyi '+(P.best_daily_streak||0)+')','Günlük seri')+'</div><input id="pf" type="file" accept="image/*" hidden><div style="height:12px"></div>'+btn('nb','Kelime defterim')+btn('pp','Profil fotoğrafı seç')+btn('lo','Çıkış yap')+btn('ob','Ana menü'));
+  panel('<div style="text-align:center">'+av(P.avatar,96)+'<h2 style="margin:8px 0 2px">'+esc(P.username)+'</h2><p>'+titleOf(P)+', '+n+' kelime</p><div style="display:flex;gap:8px;justify-content:center;margin-bottom:14px"><button class="sbtn" id="bb">Rozetler ('+nb+'/'+BD.length+')</button><button class="sbtn" id="tb2">Unvan ilerlemesi</button></div></div><div class="sg">'+S(P.best_score,'Seri rekoru')+S(P.best_streak,'En uzun seri')+S(t?Math.round(n/t*100)+'%':'-','Doğruluk')+S(n?(P.total_guesses/n).toFixed(1):'-','Ortalama tahmin')+S(P.first_try||0,'İlk denemede')+S(P.hints_used||0,'İpucu kullanımı')+S(P.total_points||0,'Toplam puan')+S(P.streak_runs||0,'Seri oyunu')+S((P.daily_wins||0)+'/'+(P.daily_played||0),'Günlük kazanılan')+S(ds+' (en iyi '+(P.best_daily_streak||0)+')','Günlük seri')+'</div><input id="pf" type="file" accept="image/*" hidden><div style="height:12px"></div>'+btn('nb','Kelime defterim')+btn('pp','Fotoğraf yükle')+btn('pv','Hazır avatar seç')+btn('lo','Çıkış yap')+btn('ob','Ana menü'));
   $('bb').onclick=aBadges;$('nb').onclick=aBook;
   $('tb2').onclick=aTitles;
   $('ob').onclick=()=>oExit();
-  $('pp').onclick=()=>$('pf').click();
+  $('pp').onclick=()=>$('pf').click();$('pv').onclick=aAvatar;
   $('pf').onchange=aPhoto;
   $('lo').onclick=async()=>{await flushStats();await sb.auth.signOut();prof=null;rHome();aAuth()};
 }
@@ -930,7 +930,7 @@ const BI={
 'Günlük 30 gün':['Günün kelimesini 30 gün üst üste bil.',p=>p.best_daily_streak,30],
 '10 günlük zafer':['Günün kelimesini toplam 10 kere bil.',p=>p.daily_wins,10],
 'Keskin nişancı':['En az 50 kelime oyna ve doğruluğunu yüzde 80 üstünde tut.',null,0],
-'Fotoğraflı profil':['Profiline bir fotoğraf ekle.',null,0]
+'Fotoğraflı profil':['Profiline bir fotoğraf veya avatar ekle.',null,0]
 };
 function aBadges(){
   const P=prof,list=BD.slice().sort((a,b)=>b[2](P)-a[2](P)),u=BD.filter(b=>b[2](P)).length;
@@ -1197,6 +1197,34 @@ async function champCheck(){
   const r=await sb.from('weekly_scores').select('best_score,profiles!inner(username)').eq('week',dStr(dayNum()-((dayNum()+3)%7)-7)).eq('profiles.cls',true).gt('best_score',0).order('best_score',{ascending:false}).limit(3);
   const d=r.data||[];if(!d.length)return;
   cfAsk('Geçen haftanın şampiyonları\n'+d.map((x,i)=>['🥇','🥈','🥉'][i]+' '+x.profiles.username+', '+x.best_score+' puan').join('\n'),'Tamam','Tüm tablo',null,()=>aBoard('last'));
+}
+</script>
+<script>
+// Hazır avatarlar: sunucuda sadece "p:anahtar" saklanır, görsel istemcide çizilir. Fotoğraf yok.
+const PA={fox:['🦊','#f97316'],panda:['🐼','#94a3b8'],cat:['🐱','#f59e0b'],dog:['🐶','#a16207'],lion:['🦁','#eab308'],frog:['🐸','#22c55e'],owl:['🦉','#78716c'],penguin:['🐧','#0ea5e9'],koala:['🐨','#64748b'],tiger:['🐯','#ea580c'],bear:['🐻','#92400e'],rabbit:['🐰','#f472b6'],octopus:['🐙','#a855f7'],whale:['🐳','#3b82f6'],unicorn:['🦄','#ec4899'],dino:['🦖','#16a34a'],robot:['🤖','#6366f1'],rocket:['🚀','#ef4444'],ghost:['👻','#8b5cf6'],alien:['👽','#10b981'],star:['⭐','#d97706'],fire:['🔥','#dc2626'],book:['📚','#0d9488'],brain:['🧠','#f43f5e']};
+const PA_RE=/^p:[a-z]{2,12}$/;
+function av(a,s){
+  const k=PA_RE.test(a||'')?PA[a.slice(2)]:null;
+  if(!k&&/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(a||''))return '<img src="'+a+'" width="'+s+'" height="'+s+'" alt="" style="border-radius:50%;object-fit:cover">';
+  return '<div style="width:'+s+'px;height:'+s+'px;border-radius:50%;background:'+(k?k[1]:'var(--key)')+';display:inline-grid;place-items:center;font-size:'+Math.round(s*.55)+'px;font-weight:800;flex:none">'+(k?k[0]:'?')+'</div>';
+}
+function mkThumb(){
+  myThumb='';
+  if(!prof)return;
+  if(PA_RE.test(prof.avatar||'')){myThumb=prof.avatar;return}
+  if(!/^data:image\/jpeg;base64,/.test(prof.avatar||''))return;
+  const im=new Image();
+  im.onload=()=>{const c=document.createElement('canvas');c.width=c.height=64;c.getContext('2d').drawImage(im,0,0,64,64);myThumb=c.toDataURL('image/jpeg',.6);if(ch)ch.track(mine())};
+  im.src=prof.avatar;
+}
+function aAvatar(){
+  panel('<p>Avatarını seç</p><div class="bg" style="grid-template-columns:repeat(4,1fr)">'+Object.keys(PA).map(k=>'<button class="bd" data-av="p:'+k+'" style="padding:6px">'+av('p:'+k,48)+'</button>').join('')+'</div><div style="height:12px"></div>'+btn('ob','Geri'));
+  document.querySelectorAll('[data-av]').forEach(b=>b.onclick=async()=>{
+    const v=b.dataset.av,r=await sb.from('profiles').update({avatar:v}).eq('id',prof.id);
+    if(r.error){toast('Kaydedilemedi, tekrar dene.');return}
+    prof.avatar=v;toast('Avatar kaydedildi');aProfile();
+  });
+  $('ob').onclick=aProfile;
 }
 </script>
 </body>
