@@ -188,6 +188,13 @@ h1{font-size:18px;margin:0;font-weight:800;letter-spacing:-.3px}
 #fbtn{display:none;position:relative;width:38px;height:34px;border-radius:999px;border:1px solid var(--line);background:var(--panel);font-size:16px}
 #app:has(#home:not([hidden])) #fbtn{display:grid;place-items:center}
 #fb{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;border-radius:8px;background:var(--r);color:#fff;font-size:10px;font-style:normal;font-weight:800;display:grid;place-items:center;padding:0 4px}
+#cf{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.5);display:grid;place-items:center;padding:20px}
+.cfb{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:20px;max-width:380px;width:100%;text-align:center;box-shadow:var(--sh)}
+.cfb p{margin:0 0 16px;font-size:16px;line-height:1.45}
+.cfb .row2{display:flex;gap:10px}
+.cfb button{flex:1;height:48px;border-radius:14px;border:1px solid var(--line);background:var(--panel);font-weight:700;font-size:15px}
+.cfb button.m{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--line);margin-right:5px}.dot.on{background:var(--g)}
 </style>
 </head>
 <body>
@@ -420,9 +427,9 @@ function oHome(){
   sb=sb||supabase.createClient(SB_URL,SB_KEY);
   if(!prof){aAuth('Online için giriş yap');return}
   myName=prof.username;
-  on('<p>Oyuncu: <b>'+esc(myName)+'</b></p>'+btn('oc','Oda kur')+'<p>Ya da oda kodunu gir</p><input id="cd" maxlength="4" style="'+SEL+';text-transform:uppercase">'+btn('oj','Odaya katıl')+btn('ob','Ana menü'));
+  on('<p>Oyuncu: <b>'+esc(myName)+'</b></p>'+btn('orm','Rastgele maç (1v1)')+btn('oc','Oda kur')+'<p>Ya da oda kodunu gir</p><input id="cd" maxlength="4" style="'+SEL+';text-transform:uppercase">'+btn('oj','Odaya katıl')+btn('ob','Ana menü'));
   $('ob').onclick=()=>oExit();
-  $('oc').onclick=oSetup;
+  $('oc').onclick=oSetup;$('orm').onclick=oRandom;
   $('oj').onclick=()=>{const c=$('cd').value.trim().toUpperCase();if(c.length<4)return;oJoin(c,false)};
 }
 
@@ -437,7 +444,7 @@ function oSetup(){
 }
 
 function oJoin(code,h){
-  isHost=h;started=false;room=code;mkThumb();
+  autoSent=false;isHost=h;started=false;room=code;mkThumb();
   ost={p:0,w:0,a:1,fin:false,end:0,n:0,m:'c'};
   ch=sb.channel('ka-'+code,{config:{broadcast:{self:true},presence:{key:myId}}});
   ch.on('presence',{event:'sync'},oSync);
@@ -452,6 +459,7 @@ function oSync(){
   if(!ch)return;
   const L=plist().sort((a,b)=>a.t-b.t),H=L.find(x=>x.h);
   if(H&&H.c)cfg=H.c;
+  if(isHost&&auto&&!started&&!autoSent&&L.length>=2){autoSent=true;ch.send({type:'broadcast',event:'start',payload:{seed:Math.floor(Math.random()*1e9),c:cfg}})}
   if(!started){
     if(cfg&&!isHost&&L.findIndex(x=>x.k===myId)>=cfg.max){oExit('Oda dolu.');return}
     oLobby(L);
@@ -469,7 +477,7 @@ function oLobby(L){
   };
 }
 
-function oBegin(pl){
+function oBegin(pl){clearInterval(mmT);mmT=null;
   if(started||!pl||!pl.c)return;
   started=true;cfg=pl.c;
   ost={p:0,w:0,a:1,fin:false,end:0,n:cfg.n,m:cfg.m};
@@ -524,7 +532,7 @@ function oResults(){
   $('ob').onclick=()=>oExit();
 }
 
-function oExit(msg){
+function oExit(msg){rndStop();
   clearInterval(tmr);
   if(ch&&sb)sb.removeChannel(ch);
   ch=null;started=false;mode='practice';
@@ -1029,20 +1037,20 @@ async function aFriends(tab){
   tab=tab||'f';panel('<p>Yükleniyor...</p>');
   const tb=(id,t,on)=>'<button class="lvl" id="'+id+'" style="margin:0;justify-content:center'+(on?';border-color:var(--g)':'')+'">'+t+'</button>';
   const hd='<div style="display:flex;gap:8px;margin-bottom:10px">'+tb('ft1','Arkadaşlar',tab==='f')+tb('ft2','Sınıf',tab==='c')+'</div>';
-  const row=(x,ex)=>'<div class="pl"><span style="display:flex;align-items:center;gap:8px;min-width:0">'+av(x.im,32)+'<span><b>'+esc(x.u)+(prof.username===x.u?' (sen)':'')+'</b><br><small style="color:var(--dim)">'+esc(x.t||'')+'</small></span></span>'+(ex||'')+'</div>';
+  const row=(x,ex)=>'<div class="pl"><span style="display:flex;align-items:center;gap:8px;min-width:0">'+av(x.im,32)+'<span><b>'+esc(x.u)+(prof.username===x.u?' (sen)':'')+'</b><br><small style="color:var(--dim)">'+(x.on===undefined?'':'<i class="dot'+(x.on?' on':'')+'"></i>'+(x.on?'Çevrimiçi':'Çevrimdışı')+' · ')+esc(x.t||'')+'</small></span></span><span>'+(x.on&&x.id&&prof.username!==x.u?'<button class="sbtn" data-i="'+esc(x.id)+'" data-n="'+esc(x.u)+'">1v1</button> ':'')+(ex||'')+'</span></div>';
   const bar=()=>{$('ob').onclick=()=>oExit();$('ft1').onclick=()=>aFriends('f');$('ft2').onclick=()=>aFriends('c')};
   if(tab==='c'){
-    const r=await sb.from('profiles').select('username,avatar,best_score,words_solved').eq('cls',true).order('best_score',{ascending:false}).limit(100);
+    const r=await sb.rpc('class_list');
     const d=r.data||[];
-    panel(hd+'<p>Sınıftakiler ('+d.length+')</p>'+d.map(x=>row({u:x.username,im:x.avatar,t:titleOf({words_solved:x.words_solved})+', rekor '+x.best_score})).join('')+btn('ob','Ana menü'));
-    bar();return;
+    panel(hd+'<p>Sınıftakiler ('+d.length+')</p>'+d.map(x=>row({id:x.id,on:x.on,u:x.u,im:x.im,t:titleOf({words_solved:x.ws})+', rekor '+x.bs})).join('')+btn('ob','Ana menü'));
+    bar();document.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>oInvite(b.dataset.i,b.dataset.n));return;
   }
   const r=await sb.rpc('friend_list');
   if(r.error){panel(hd+'<p>Yüklenemedi, tekrar dene.</p>'+btn('ob','Ana menü'));bar();return}
   const d=r.data,cd=d.code.slice(0,4)+'-'+d.code.slice(4);
   panel(hd+'<div class="pl"><span>Kodun: <b style="letter-spacing:2px">'+esc(cd)+'</b></span><button class="sbtn" id="fcp">Kopyala</button></div><input id="fcode" maxlength="12" autocomplete="off" placeholder="Arkadaş kodu" style="'+SEL+';text-transform:uppercase">'+btn('fadd','Arkadaş ekle')
     +(d.incoming.length?'<p>İstekler</p>'+d.incoming.map(x=>row(x,'<span><button class="sbtn" data-a="'+esc(x.id)+'">Kabul</button> <button class="sbtn" data-r="'+esc(x.id)+'">Reddet</button></span>')).join(''):'')
-    +'<p>Arkadaşların ('+d.friends.length+')</p>'+(d.friends.length?d.friends.map(x=>row({u:x.u,im:x.im,t:titleOf({words_solved:x.ws})+', rekor '+x.bs+(x.c?', sınıf':'')},'<button class="sbtn" data-x="'+esc(x.id)+'">Sil</button>')).join(''):'<p>Henüz arkadaşın yok. Kodunu paylaş veya arkadaşının kodunu gir.</p>')+btn('ob','Ana menü'));
+    +'<p>Arkadaşların ('+d.friends.length+')</p>'+(d.friends.length?d.friends.map(x=>row({id:x.id,on:x.on,u:x.u,im:x.im,t:titleOf({words_solved:x.ws})+', rekor '+x.bs+(x.c?', sınıf':'')},'<button class="sbtn" data-x="'+esc(x.id)+'">Sil</button>')).join(''):'<p>Henüz arkadaşın yok. Kodunu paylaş veya arkadaşının kodunu gir.</p>')+btn('ob','Ana menü'));
   bar();
   $('fcp').onclick=()=>{try{navigator.clipboard.writeText(d.code)}catch(e){}toast('Kod kopyalandı')};
   $('fadd').onclick=async()=>{
@@ -1056,8 +1064,91 @@ async function aFriends(tab){
   act('[data-a]','a',id=>sb.rpc('friend_respond',{_id:id,_acc:true}));
   act('[data-r]','r',id=>sb.rpc('friend_respond',{_id:id,_acc:false}));
   act('[data-x]','x',id=>sb.rpc('friend_remove',{_id:id}));
+  document.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>oInvite(b.dataset.i,b.dataset.n));
 }
 $('fbtn').onclick=()=>aFriends('f');
+</script>
+<script>
+let mmT=null,mmOn=false,auto=false,autoSent=false,invSeen=0;
+document.body.insertAdjacentHTML('beforeend','<div id="cf" hidden><div class="cfb"><p id="cft"></p><div class="row2"><button id="cfn"></button><button id="cfy" class="m"></button></div></div></div>');
+function cfAsk(t,y,n,fy,fn){
+  $('cft').textContent=t;$('cfy').textContent=y;$('cfn').textContent=n;$('cf').hidden=false;
+  $('cfy').onclick=()=>{$('cf').hidden=true;if(fy)fy()};
+  $('cfn').onclick=()=>{$('cf').hidden=true;if(fn)fn()};
+}
+const _bk=$('back').onclick;
+function exitMsg(){return mode==='online'?'Maçtan çıkarsan oyundan düşersin.':mode==='streak'?'Çıkarsan bu seri biter, puanın kaydedilir.':mode==='daily'?'Günlük oyun kaldığın yerden devam eder.':''}
+$('back').onclick=()=>{if(!$('game').hidden&&!over&&mode!=='practice')cfAsk('Gerçekten çıkmak istiyor musun? '+exitMsg(),'Çık','Devam et',_bk);else _bk()};
+function goBack(){
+  if(!$('cf').hidden){$('cfn').click();return}
+  if(!$('game').hidden){$('back').click();return}
+  if(!$('menu').hidden){$('toHome').click();return}
+  if(!$('online').hidden)oExit();
+}
+history.replaceState({vb:0},'');history.pushState({vb:1},'');
+addEventListener('popstate',()=>{
+  const sub=!$('cf').hidden||!$('game').hidden||!$('menu').hidden||(!$('online').hidden&&prof);
+  if(sub){history.pushState({vb:1},'');goBack();return}
+  toast('Çıkmak için tekrar geri bas');
+  setTimeout(()=>history.pushState({vb:1},''),2000);
+});
+addEventListener('keydown',e=>{if(e.key==='Escape'&&(!$('cf').hidden||!$('game').hidden||!$('menu').hidden||!$('online').hidden))goBack()});
+addEventListener('beforeunload',e=>{if(!$('game').hidden&&!over&&mode!=='practice'){e.preventDefault();e.returnValue=''}});
+async function tick(){
+  if(!sb||!prof||document.hidden)return;
+  const r=await sb.rpc('app_tick');if(r.error)return;
+  const d=r.data,b=$('fb');
+  if(b){b.textContent=d.fr;b.hidden=!(d.fr>0)}
+  if(d.inv&&d.inv.id!==invSeen&&$('game').hidden&&$('cf').hidden){
+    invSeen=d.inv.id;sfx('badge');
+    cfAsk(d.inv.u+' seni 1v1 maça davet ediyor.','Kabul et','Reddet',()=>invAccept(d.inv.id),()=>sb.rpc('invite_answer',{_id:d.inv.id,_acc:false}));
+  }
+}
+function fbadge(){tick()}
+setInterval(tick,8000);
+async function invAccept(id){
+  const r=await sb.rpc('invite_answer',{_id:id,_acc:true});
+  if(r.error||!r.data){toast('Davetin süresi dolmuş.');return}
+  myName=prof.username;auto=true;$('home').hidden=true;$('menu').hidden=true;$('online').hidden=false;oJoinG(r.data);
+}
+function oJoinG(code){
+  oJoin(code,false);
+  setTimeout(()=>{if(ch&&!started&&room===code&&!plist().some(x=>x.h))oExit('Rakip bağlantısı koptu, tekrar dene.')},10000);
+}
+async function oInvite(id,name){
+  const A='ABCDEFGHJKMNPQRSTUVWXYZ23456789',rm=Array.from(crypto.getRandomValues(new Uint8Array(8)),b=>A[b%31]).join('');
+  const r=await sb.rpc('invite_send',{_to:id,_room:rm});
+  if(r.error){toast('Bağlantı hatası');return}
+  if(r.data.err){toast({'aktif degil':'Bu kişi şu an aktif değil.','izin yok':'Sadece arkadaşını veya sınıftakini davet edebilirsin.','limit':'Çok fazla davet gönderdin, biraz bekle.'}[r.data.err]||'Davet gönderilemedi.');return}
+  myName=prof.username;auto=true;cfg={max:2,m:'c',n:15,dur:0,l:-1};
+  toast(name+' davet edildi, bekleniyor...');oJoin(rm,true);
+}
+function rndStop(){clearInterval(mmT);mmT=null;if(mmOn){mmOn=false;if(sb)sb.rpc('mm_cancel')}auto=false}
+async function oRandom(){
+  if(!sb||!prof)return;
+  myName=prof.username;mmOn=true;auto=true;
+  on('<p>Rakip aranıyor...</p>'+btn('ob','İptal'));$('ob').onclick=()=>oExit();
+  let mine=null,claimedAt=0;
+  const step=async()=>{
+    if(!mmOn)return;
+    const r=await sb.rpc('mm_find',{_room:mine});
+    if(!mmOn||r.error)return;
+    const d=r.data;
+    if(d.role==='guest'){
+      clearInterval(mmT);mmT=null;mmOn=false;
+      if(ch){sb.removeChannel(ch);ch=null}
+      oJoinG(d.room);return;
+    }
+    if(d.role==='claimed'){
+      if(!claimedAt)claimedAt=Date.now();
+      if(Date.now()-claimedAt>12000)oExit('Rakip bağlanamadı, tekrar dene.');
+      return;
+    }
+    if(!mine){mine=d.room;cfg={max:2,m:'c',n:15,dur:0,l:-1};oJoin(mine,true)}
+  };
+  await step();
+  if(mmOn)mmT=setInterval(step,3000);
+}
 </script>
 </body>
 </html>
