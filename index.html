@@ -298,7 +298,7 @@ function next(){
   let p;if(SR){p=['?'.repeat(SR.len),SR.def];lv=SR.lvl==null?1:SR.lvl}else if(mode==='online'){const it=seq[si%seq.length];lv=it.l;p=it.w.split('|')}else{if(!bag[lv].length){bag[lv]=W[lv].map((_,i)=>i).sort(()=>Math.random()-.5)}
   p=W[lv][bag[lv].pop()].split('|')}
   word=p[0].toUpperCase();def=p[1];guesses=[];cur=Array(word.length).fill('');sel=-1;over=false;ks={};hintUsed=false;$('hinttxt').hidden=true;
-  tries=SR?SR.tries:word.length>8?7:6;if(SR&&SR.guesses){guesses=SR.guesses.map(x=>({w:x.w.toUpperCase(),s:x.s.split('')}));guesses.forEach(g=>kmark(g.w,g.s))}SR=null;
+  tries=SR?SR.tries:5;if(SR&&SR.guesses){guesses=SR.guesses.map(x=>({w:x.w.toUpperCase(),s:x.s.split('')}));guesses.forEach(g=>kmark(g.w,g.s))}SR=null;
   $('menu').hidden=true;$('home').hidden=true;$('online').hidden=true;$('game').hidden=false;$('res').innerHTML='';
   $('back').textContent=mode==='practice'?'Seviyeler':'Çık';
   $('score').textContent=sc()+' puan';
