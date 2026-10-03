@@ -620,7 +620,7 @@ function aPhoto(e){
     URL.revokeObjectURL(u);
     const d=c.toDataURL('image/jpeg',.7);
     const r=await sb.from('profiles').update({avatar:d}).eq('id',prof.id);
-    if(r.error){alert('Fotoğraf kaydedilemedi.');return}
+    if(r.error){alert('Fotoğraf kaydedilemedi: '+r.error.message);return}
     prof.avatar=d;aProfile();
   };
   im.onerror=()=>alert('Görsel açılamadı.');
@@ -1223,7 +1223,7 @@ function aAvatar(){
   panel('<p>Avatarını seç</p><div class="bg" style="grid-template-columns:repeat(4,1fr)">'+Object.keys(PA).map(k=>'<button class="bd" data-av="p:'+k+'" style="padding:6px">'+av('p:'+k,48)+'</button>').join('')+'</div><div style="height:12px"></div>'+btn('ob','Geri'));
   document.querySelectorAll('[data-av]').forEach(b=>b.onclick=async()=>{
     const v=b.dataset.av,r=await sb.from('profiles').update({avatar:v}).eq('id',prof.id);
-    if(r.error){toast('Kaydedilemedi, tekrar dene.');return}
+    if(r.error){toast('Kaydedilemedi: '+r.error.message);return}
     prof.avatar=v;toast('Avatar kaydedildi');aProfile();
   });
   $('ob').onclick=aProfile;
